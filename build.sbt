@@ -1,0 +1,5 @@
+name := "phyloHMC"
+version := "1.0"
+scalaVersion := "2.11.8"
+libraryDependencies += "org.spire-math" %% "spire" % "0.11.0"
+libraryDependencies += "com.github.julien-truffaut"  %%  "monocle-core" % "1.2.0"
