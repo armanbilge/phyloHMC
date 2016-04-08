@@ -4,7 +4,7 @@ import monocle.function.Index._
 import monocle.std.map._
 import spire.algebra.AdditiveMonoid
 
-case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], neighbors: Map[N, Set[N]], lengths: Map[Branch[N], R], taxa: N => String) extends PartialFunction[Branch[N], R] {
+case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], neighbors: Map[N, Set[N]], lengths: Map[Branch[N], R], taxa: N => Taxon) extends PartialFunction[Branch[N], R] {
 
   override def isDefinedAt(b: Branch[N]): Boolean = branches contains b
 
@@ -42,7 +42,7 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], 
     def recurse(p: N, n: N): StringBuilder = (if (isInternal(n))
       new StringBuilder ++= "(" ++= children(n, p).map(recurse(n, _)).mkString(",") ++= ")"
     else
-      new StringBuilder(taxa(n))
+      new StringBuilder(taxa(n).name)
     ) ++= ":" ++= this(Branch(p, n)).toString
 
     val rho = nodes.view.filter(isLeaf).head
@@ -71,10 +71,10 @@ object Tree {
 
   def removeNeighbor[N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ - e)
 
-  def apply[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], lengths: Map[Branch[N], R], taxa: N => String): Tree[R, N] =
+  def apply[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], lengths: Map[Branch[N], R], taxa: N => Taxon): Tree[R, N] =
     Tree(nodes, branches, generateNeighbors(nodes, branches), lengths, taxa)
 
-  def apply[R : AdditiveMonoid](taxa: TraversableOnce[String], r: => R): Tree[R, Int] = {
+  def apply[R : AdditiveMonoid](taxa: TraversableOnce[Taxon], r: => R): Tree[R, Int] = {
     val leaves = taxa.toIndexedSeq.zipWithIndex.map(Function.tupled((t, i) => i -> t)).toMap
     val rho = leaves.keys.head
     val nodes = leaves.keys.tail.toSet
