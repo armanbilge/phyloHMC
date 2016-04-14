@@ -2,9 +2,9 @@ package org.fhcrc.matsen.phylohmc
 
 import monocle.function.Index._
 import monocle.std.map._
-import spire.algebra.AdditiveMonoid
+import spire.algebra.{AdditiveMonoid, Field, VectorSpace}
 
-case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], neighbors: Map[N, Set[N]], lengths: Map[Branch[N], R], taxa: N => Taxon) extends PartialFunction[Branch[N], R] {
+case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], neighbors: Map[N, Set[N]], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]) extends PartialFunction[Branch[N], R] {
 
   override def isDefinedAt(b: Branch[N]): Boolean = branches contains b
 
@@ -71,7 +71,7 @@ object Tree {
 
   def removeNeighbor[N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ - e)
 
-  def apply[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], lengths: Map[Branch[N], R], taxa: N => Taxon): Tree[R, N] =
+  def apply[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]): Tree[R, N] =
     Tree(nodes, branches, generateNeighbors(nodes, branches), lengths, taxa)
 
   def apply[R : AdditiveMonoid](taxa: TraversableOnce[Taxon], r: => R): Tree[R, Int] = {
@@ -84,6 +84,28 @@ object Tree {
     }
     val branchesp = branches + Branch(rho, root.head)
     Tree((0 until (2 * leaves.size - 2)).toSet, branchesp, branchesp.map(_ -> r).toMap, leaves)
+  }
+
+  implicit def TreeIsVectorSpace[R, N](implicit f: Field[R]) = new VectorSpace[Tree[R, N], R] {
+
+    override def scalar: Field[R] = f
+
+    override def timesl(r: R, v: Tree[R, N]): Tree[R, N] = v.copy(lengths = v.lengths.map(Function.tupled((b, l) => b -> f.times(l, r))))
+
+    override def negate(x: Tree[R, N]): Tree[R, N] = x.copy(lengths = x.lengths.map(Function.tupled((b, l) => b -> f.negate(l))))
+
+    override def zero: Tree[R, N] = Tree[R, N](Set[N](), Set[Branch[N]](), Map[N, Set[N]](), Map[Branch[N], R](), Map[N, Taxon]())
+
+    override def plus(x: Tree[R, N], y: Tree[R, N]): Tree[R, N] = {
+      import spire.std.map._
+      Tree[R, N](x.nodes ++ y.nodes, x.branches ++ y.branches, x.neighbors ++ y.neighbors, VectorSpace[Map[Branch[N], R], R].plus(x.lengths, y.lengths), x.taxa.orElse(y.taxa))
+    }
+
+    override def minus(x: Tree[R, N], y: Tree[R, N]): Tree[R, N] = {
+      import spire.std.map._
+      Tree[R, N](x.nodes ++ y.nodes, x.branches ++ y.branches, x.neighbors ++ y.neighbors, VectorSpace[Map[Branch[N], R], R].minus(x.lengths, y.lengths), x.taxa.orElse(y.taxa))
+    }
+
   }
 
 }
