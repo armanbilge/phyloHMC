@@ -15,6 +15,8 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], 
     copy(lengths = lengths + (b -> r))
   }
 
+  def mapLengths[S : AdditiveMonoid](f: R => S): Tree[S, N] = copy(lengths = lengths.mapValues(f))
+
   def nni(b: Branch[N], which: Boolean): Tree[R, N] = {
     require(isInternal(b))
     val u = b.head
