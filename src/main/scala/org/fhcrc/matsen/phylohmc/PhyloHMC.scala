@@ -11,14 +11,16 @@ case class Z[R : Field, N](q: Tree[R, N], p: Tree[R, N], Minv: Tree[Tree[R, N], 
   lazy val H = u + k
   def copy(q: Tree[R, N] = this.q, p: Tree[R, N] = this.p, Minv: Tree[Tree[R, N], N] = this.Minv, L: Tree[Tree[R, N], N] = this.L)(_U: => (R, Tree[R, N]) = (u, dU), _K: => (R, Tree[R, N]) = (k, dK)): Z[R, N] =
     Z(q, p, Minv, L)(_U, _K)
-  def nni(b: Branch[N], which: Boolean, _U: => (R, Tree[R, N]), _K: => (R, Tree[R, N])): Z[R, N] =
-    Z(q.nni(b, which), p.nni(b, which), Minv.mapLengths(_.nni(b, which)).nni(b, which), L.mapLengths(_.nni(b, which)).nni(b, which))(_U, _K)
+  def nni(b: Branch[N], which: Boolean, U: Tree[R, N] => (R, Tree[R, N])): Z[R, N] = {
+    val qp = q.nni(b, which)
+    Z(qp, p.nni(b, which), Minv.mapLengths(_.nni(b, which)).nni(b, which), L.mapLengths(_.nni(b, which)).nni(b, which))(U(qp), (k, dK))
+  }
 }
 
-abstract class PhyloHMC[R : Field : NRoot : Trig : Order, N](val U: Tree[R, N] => (R, Tree[R, N]), val eps: R, val alpha: R, val L: Int)(implicit val rng: Generator, implicit val uniformImpl: Uniform[R], implicit val gaussianImpl: Gaussian[R]) extends (Z[R, N] => Z[R, N]) {
+abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R, N] => (R, Tree[R, N]), val eps: R, val alpha: R, val L: Int)(implicit val rng: Generator, implicit val f: Field[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
 
-  val uniform = Dist.uniform(Field[R].fromInt(0), Field[R].fromInt(1))
-  val gaussian = Dist.gaussian[R](Field[R].fromInt(0), Field[R].fromInt(1))
+  val uniform = Dist.uniform(Field[R].zero, Field[R].one)
+  val gaussian = Dist.gaussian(Field[R].zero, Field[R].one)
   val sqrtalpha = NRoot[R].sqrt(alpha)
   val sqrt1malpha = NRoot[R].sqrt(1 - alpha)
 
@@ -35,7 +37,7 @@ abstract class PhyloHMC[R : Field : NRoot : Trig : Order, N](val U: Tree[R, N] =
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N]
 
-  def solveForEps(br: Branch[N], z: Z[R, N]): R = {
+  def solveForEps(z: Z[R, N])(br: Branch[N]): R = {
     val twoa = z.Minv(br) dot z.dU
     val b = z.Minv(br) dot z.p
     val c = z.q(br)
@@ -67,6 +69,34 @@ abstract class PhyloHMC[R : Field : NRoot : Trig : Order, N](val U: Tree[R, N] =
 
 }
 
-trait ReflectivePhyloHMC[R, N] extends PhyloHMC[R, N]
+trait ReflectivePhyloHMC[R, N] extends PhyloHMC[R, N] {
 
-trait VuPhyloHMC[R, N] extends PhyloHMC[R, N]
+  def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
+    z.q.branches.map(b => (b, solveForEps(z)(b))).filter(x => x._2 <= eps).toList.sortWith(_._2 < _._2).view.map(_._1).foldLeft(leapfrog(eps)(z)) { (z, b) =>
+      rng.nextInt(3) match {
+        case 0 => z
+        case 1 => z.nni(b, false, U)
+        case 2 => z.nni(b, true, U)
+      }
+    }
+  }
+
+}
+
+trait VuPhyloHMC[R, N] extends PhyloHMC[R, N] {
+
+  def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
+    val (zp, e) = z.q.branches.map(b => (b, solveForEps(z)(b))).filter(x => x._2 <= eps).toList.sortWith(_._2 < _._2).foldLeft((z, Field[R].zero)) { (ze, bt) =>
+      val (z, e) = ze
+      val (b, t) = bt
+      val zp = leapfrog(t - e)(z)
+      (rng.nextInt(3) match {
+        case 0 => zp
+        case 1 => zp.nni(b, false, U)
+        case 2 => zp.nni(b, true, U)
+      }, t)
+    }
+    leapfrog(eps - e)(zp)
+  }
+
+}
