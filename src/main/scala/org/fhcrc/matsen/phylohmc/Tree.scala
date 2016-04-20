@@ -2,7 +2,7 @@ package org.fhcrc.matsen.phylohmc
 
 import monocle.function.Index._
 import monocle.std.map._
-import spire.algebra.{AdditiveMonoid, Field, VectorSpace}
+import spire.algebra.{AdditiveMonoid, Field, InnerProductSpace}
 
 case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], neighbors: Map[N, Set[N]], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]) extends PartialFunction[Branch[N], R] {
 
@@ -86,7 +86,7 @@ object Tree {
     Tree((0 until (2 * leaves.size - 2)).toSet, branchesp, branchesp.map(_ -> r).toMap, leaves)
   }
 
-  implicit def TreeIsVectorSpace[R, N](implicit f: Field[R]) = new VectorSpace[Tree[R, N], R] {
+  implicit def TreeIsInnerProductSpace[R, N](implicit f: Field[R]) = new InnerProductSpace[Tree[R, N], R] {
 
     override def scalar: Field[R] = f
 
@@ -98,12 +98,19 @@ object Tree {
 
     override def plus(x: Tree[R, N], y: Tree[R, N]): Tree[R, N] = {
       import spire.std.map._
-      Tree[R, N](x.nodes ++ y.nodes, x.branches ++ y.branches, x.neighbors ++ y.neighbors, VectorSpace[Map[Branch[N], R], R].plus(x.lengths, y.lengths), x.taxa.orElse(y.taxa))
+      import spire.syntax.vectorSpace._
+      Tree[R, N](x.nodes ++ y.nodes, x.branches ++ y.branches, x.neighbors ++ y.neighbors, x.lengths + y.lengths, x.taxa.orElse(y.taxa))
     }
 
     override def minus(x: Tree[R, N], y: Tree[R, N]): Tree[R, N] = {
       import spire.std.map._
-      Tree[R, N](x.nodes ++ y.nodes, x.branches ++ y.branches, x.neighbors ++ y.neighbors, VectorSpace[Map[Branch[N], R], R].minus(x.lengths, y.lengths), x.taxa.orElse(y.taxa))
+      import spire.syntax.vectorSpace._
+      Tree[R, N](x.nodes ++ y.nodes, x.branches ++ y.branches, x.neighbors ++ y.neighbors, x.lengths - y.lengths, x.taxa.orElse(y.taxa))
+    }
+
+    override def dot(v: Tree[R, N], w: Tree[R, N]): R = {
+      import spire.syntax.field._
+      Field[R].sum((v.branches intersect w.branches).map(b => v(b) * w(b)))
     }
 
   }
