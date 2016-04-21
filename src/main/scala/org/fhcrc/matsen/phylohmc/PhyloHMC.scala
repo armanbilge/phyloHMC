@@ -11,11 +11,11 @@ case class Z[R : Field, N](q: Tree[R, N], p: Tree[R, N], Minv: Tree[Tree[R, N], 
   lazy val H = u + k
   def copy(q: Tree[R, N] = this.q, p: Tree[R, N] = this.p, Minv: Tree[Tree[R, N], N] = this.Minv, L: Tree[Tree[R, N], N] = this.L)(_U: => (R, Tree[R, N]) = (u, dU), _K: => (R, Tree[R, N]) = (k, dK)): Z[R, N] =
     Z(q, p, Minv, L)(_U, _K)
-  def nni(b: Branch[N], which: Boolean, U: Tree[R, N] => (R, Tree[R, N]), K: (Tree[R, N], Tree[Tree[R, N], N]) => (R, Tree[R, N])): Z[R, N] = {
+  def nni(b: Branch[N], which: Boolean, U: Tree[R, N] => (R, Tree[R, N]), K: Tree[Tree[R, N], N] => Tree[R, N] => (R, Tree[R, N])): Z[R, N] = {
     val qp = q.nni(b, which)
     val pp = p.updated(b, -p(b)).nni(b, which)
     val Minvp = Minv.mapLengths(_.nni(b, which)).nni(b, which)
-    Z(qp, pp, Minvp, L.mapLengths(_.nni(b, which)).nni(b, which))(U(qp), K(pp, Minvp))
+    Z(qp, pp, Minvp, L.mapLengths(_.nni(b, which)).nni(b, which))(U(qp), K(Minvp)(pp))
   }
 }
 
@@ -26,7 +26,7 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R,
   val sqrtalpha = NRoot[R].sqrt(alpha)
   val sqrt1malpha = NRoot[R].sqrt(1 - alpha)
 
-  def K(p: Tree[R, N], Minv: Tree[Tree[R, N], N]): (R, Tree[R, N])
+  def K(Minv: Tree[Tree[R, N], N])(p: Tree[R, N]): (R, Tree[R, N])
 
   def leapfrog(eps: R)(z: Z[R, N]): Z[R, N] = {
     val halfEps = eps / 2
@@ -58,7 +58,7 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R,
       val x = z.L(b) dot r
       p.updated(b, p(b) * sqrt1malpha + x * sqrtalpha)
     }
-    z.copy(p = pp)(_K = K(pp, z.Minv))
+    z.copy(p = pp)(_K = K(z.Minv)(pp))
   }
 
   def simulateDynamics(z: Z[R, N]): Z[R, N] = (0 until L).foldLeft(z)((z, _) => leapprog(eps)(z))
