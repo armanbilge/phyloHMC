@@ -73,8 +73,8 @@ object Tree {
 
   def removeNeighbor[N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ - e)
 
-  def apply[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]): Tree[R, N] =
-    Tree(nodes, branches, generateNeighbors(nodes, branches), lengths, taxa)
+  def apply[R : AdditiveMonoid, N](nodes: Set[N], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]): Tree[R, N] =
+    Tree(nodes, lengths.keySet, generateNeighbors(nodes, lengths.keySet), lengths, taxa)
 
   def apply[R : AdditiveMonoid](taxa: TraversableOnce[Taxon], r: => R): Tree[R, Int] = {
     val leaves = taxa.toIndexedSeq.zipWithIndex.map(Function.tupled((t, i) => i -> t)).toMap
@@ -85,7 +85,7 @@ object Tree {
       (nodes.tail.tail + i, branches + Branch(nodes.head, i) + Branch(nodes.tail.head, i))
     }
     val branchesp = branches + Branch(rho, root.head)
-    Tree((0 until (2 * leaves.size - 2)).toSet, branchesp, branchesp.map(_ -> r).toMap, leaves)
+    Tree((0 until (2 * leaves.size - 2)).toSet, branchesp.map(_ -> r).toMap, leaves)
   }
 
   implicit def TreeIsInnerProductSpace[R, N](implicit f: Field[R]) = new InnerProductSpace[Tree[R, N], R] {
