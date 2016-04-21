@@ -11,13 +11,15 @@ case class Z[R : Field, N](q: Tree[R, N], p: Tree[R, N], Minv: Tree[Tree[R, N], 
   lazy val H = u + k
   def copy(q: Tree[R, N] = this.q, p: Tree[R, N] = this.p, Minv: Tree[Tree[R, N], N] = this.Minv, L: Tree[Tree[R, N], N] = this.L)(_U: => (R, Tree[R, N]) = (u, dU), _K: => (R, Tree[R, N]) = (k, dK)): Z[R, N] =
     Z(q, p, Minv, L)(_U, _K)
-  def nni(b: Branch[N], which: Boolean, U: Tree[R, N] => (R, Tree[R, N])): Z[R, N] = {
+  def nni(b: Branch[N], which: Boolean, U: Tree[R, N] => (R, Tree[R, N]), K: (Tree[R, N], Tree[Tree[R, N], N]) => (R, Tree[R, N])): Z[R, N] = {
     val qp = q.nni(b, which)
-    Z(qp, p.nni(b, which), Minv.mapLengths(_.nni(b, which)).nni(b, which), L.mapLengths(_.nni(b, which)).nni(b, which))(U(qp), (k, dK))
+    val pp = p.updated(b, -p(b)).nni(b, which)
+    val Minvp = Minv.mapLengths(_.nni(b, which)).nni(b, which)
+    Z(qp, pp, Minvp, L.mapLengths(_.nni(b, which)).nni(b, which))(U(qp), K(pp, Minvp))
   }
 }
 
-abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R, N] => (R, Tree[R, N]), val eps: R, val alpha: R, val L: Int)(implicit val rng: Generator, implicit val f: Field[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
+abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R, N] => (R, Tree[R, N]), val eps: R, val alpha: R, val L: Int)(implicit val rng: Generator, implicit val f: Field[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
 
   val uniform = Dist.uniform(Field[R].zero, Field[R].one)
   val gaussian = Dist.gaussian(Field[R].zero, Field[R].one)
@@ -72,11 +74,14 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R,
 trait ReflectivePhyloHMC[R, N] extends PhyloHMC[R, N] {
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
-    z.q.branches.map(b => (b, solveForEps(z)(b))).filter(x => x._2 <= eps).toList.sortWith(_._2 < _._2).view.map(_._1).foldLeft(leapfrog(eps)(z)) { (z, b) =>
+    z.q.branches.map(b => (b, solveForEps(z)(b))).filter(x => x._2 <= eps).toList.sortWith(_._2 < _._2).view.map(_._1).foldLeft({
+      val zp = leapfrog(eps)(z)
+      zp.copy(q = zp.q.mapLengths(Signed[R].abs))()
+    }) { (z, b) =>
       rng.nextInt(3) match {
         case 0 => z
-        case 1 => z.nni(b, false, U)
-        case 2 => z.nni(b, true, U)
+        case 1 => z.nni(b, false, U, K)
+        case 2 => z.nni(b, true, U, K)
       }
     }
   }
@@ -92,8 +97,8 @@ trait VuPhyloHMC[R, N] extends PhyloHMC[R, N] {
       val zp = leapfrog(t - e)(z)
       (rng.nextInt(3) match {
         case 0 => zp
-        case 1 => zp.nni(b, false, U)
-        case 2 => zp.nni(b, true, U)
+        case 1 => zp.nni(b, false, U, K)
+        case 2 => zp.nni(b, true, U, K)
       }, t)
     }
     leapfrog(eps - e)(zp)
