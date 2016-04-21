@@ -3,7 +3,7 @@ package org.fhcrc.matsen.phylohmc
 import spire.algebra.Signed
 import spire.syntax.order._
 
-trait ReflectivePhyloHMC[R, N] extends PhyloHMC[R, N] {
+trait ReflectiveLeapProg[R, N] extends PhyloHMC[R, N] {
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
     z.q.branches.map(b => (b, solveForEps(z)(b))).filter(x => x._2 <= eps).toList.sortWith(_._2 < _._2).view.map(_._1).foldLeft({
