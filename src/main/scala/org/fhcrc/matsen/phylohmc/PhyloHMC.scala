@@ -1,6 +1,7 @@
 package org.fhcrc.matsen.phylohmc
 
 import spire.algebra._
+import spire.math.{Jet, JetDim}
 import spire.random.{Dist, Gaussian, Generator, Uniform}
 import spire.syntax.innerProductSpace._
 import spire.syntax.order._
@@ -26,7 +27,10 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R,
   val sqrtalpha = NRoot[R].sqrt(alpha)
   val sqrt1malpha = NRoot[R].sqrt(1 - alpha)
 
-  def K(Minv: Tree[Tree[R, N], N])(p: Tree[R, N]): (R, Tree[R, N])
+  def K(Minv: Tree[Tree[R, N], N])(p: Tree[R, N]): (R, Tree[R, N]) = {
+    val Minvp = p.mapLengths((b, _) => Minv(b) dot p)
+    (0.5 * p dot Minvp, Minvp) // TODO Is this correct?
+  }
 
   def leapfrog(eps: R)(z: Z[R, N]): Z[R, N] = {
     val halfEps = eps / 2
