@@ -28,7 +28,7 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R,
 
   def K(Minv: Tree[Tree[R, N], N])(p: Tree[R, N]): (R, Tree[R, N]) = {
     val Minvp = p.mapLengths((b, _) => Minv(b) dot p)
-    (0.5 * p dot Minvp, Minvp)
+    ((p dot Minvp) / 2, Minvp)
   }
 
   def leapfrog(eps: R)(z: Z[R, N]): Z[R, N] = {
