@@ -1,7 +1,6 @@
 package org.fhcrc.matsen.phylohmc
 
 import spire.algebra._
-import spire.math.{Jet, JetDim}
 import spire.random.{Dist, Gaussian, Generator, Uniform}
 import spire.syntax.innerProductSpace._
 import spire.syntax.order._
