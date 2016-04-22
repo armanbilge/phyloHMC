@@ -5,12 +5,17 @@ import spire.random.{Dist, Gaussian, Generator, Uniform}
 import spire.syntax.innerProductSpace._
 import spire.syntax.order._
 
-abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R, N] => (R, Tree[R, N]), val eps: R, val alpha: R, val L: Int)(implicit val rng: Generator, implicit val f: Field[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
+abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val posterior: Tree[R, N] => (R, Tree[R, N]), val eps: R, val alpha: R, val L: Int)(implicit val rng: Generator, implicit val f: Field[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
 
   val uniform = Dist.uniform(Field[R].zero, Field[R].one)
   val gaussian = Dist.gaussian(Field[R].zero, Field[R].one)
   val sqrtalpha = NRoot[R].sqrt(alpha)
   val sqrt1malpha = NRoot[R].sqrt(1 - alpha)
+
+  def U(q: Tree[R, N]): (R, Tree[R, N]) = {
+    val (p, dP) = posterior(q)
+    (-p, -dP)
+  }
 
   def K(Minv: Tree[Tree[R, N], N])(p: Tree[R, N]): (R, Tree[R, N]) = {
     val Minvp = p.mapLengths((b, _) => Minv(b) dot p)
