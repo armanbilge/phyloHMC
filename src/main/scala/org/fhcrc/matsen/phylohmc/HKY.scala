@@ -3,7 +3,7 @@ package org.fhcrc.matsen.phylohmc
 import spire.algebra.{Field, Trig}
 import spire.syntax.field._
 
-class HKY[R : Field : Trig](val stationaryDistribution: Vector[R], val kappa: R) extends SubstitutionModel[R] {
+class HKY[R : Field : Trig](val stationaryDistribution: IndexedSeq[R], val kappa: R) extends SubstitutionModel[R] {
 
   val freqA = stationaryDistribution(0)
   val freqC = stationaryDistribution(1)
@@ -52,11 +52,17 @@ class HKY[R : Field : Trig](val stationaryDistribution: Vector[R], val kappa: R)
     val t1Caa = tab1C * aa
     val t1Taa = tab1T * aa
 
-    new Matrix(4, Vector(freqA + t1Aaa + (tab2A * bbR), freqA * oneminusa, freqA + t1Aaa - (tab3A * bbR), freqA * oneminusa,
+    Matrix(freqA + t1Aaa + (tab2A * bbR), freqA * oneminusa, freqA + t1Aaa - (tab3A * bbR), freqA * oneminusa,
       freqC * oneminusa, freqC + t1Caa + (tab2C * bbY), freqC * oneminusa, freqC + t1Caa - (tab3C * bbY),
       freqG + t1Gaa - (tab3G * bbR), freqG * oneminusa, freqG + t1Gaa + (tab2G * bbR), freqG * oneminusa,
-      freqT * oneminusa, freqT + t1Taa - (tab3T * bbY), freqT * oneminusa, freqT + t1Taa + (tab2T * bbY)))
+      freqT * oneminusa, freqT + t1Taa - (tab3T * bbY), freqT * oneminusa, freqT + t1Taa + (tab2T * bbY))
 
   }
+
+}
+
+object HKY {
+
+  def apply[R : Field : Trig](stationaryDistribution: IndexedSeq[R], kappa: R) = new HKY[R](stationaryDistribution, kappa)
 
 }
