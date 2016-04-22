@@ -1,5 +1,6 @@
 package org.fhcrc.matsen.phylohmc
 
+import org.apache.commons.math3.linear.{Array2DRowRealMatrix, CholeskyDecomposition, LUDecomposition}
 import spire.algebra.Field
 import spire.syntax.field._
 
@@ -15,4 +16,19 @@ case class Z[R : Field, N](q: Tree[R, N], p: Tree[R, N], Minv: Tree[Tree[R, N], 
     val Minvp = Minv.mapLengths(_.nni(b, which)).nni(b, which)
     Z(qp, pp, Minvp, L.mapLengths(_.nni(b, which)).nni(b, which))(U(qp), K(Minvp)(pp))
   }
+}
+
+object Z {
+
+  def apply[R : Field, N](q: Tree[R, N], p: Tree[R, N], M: Tree[Tree[R, N], N], U: Tree[R, N] => (R, Tree[R, N]), K: Tree[Tree[R, N], N] => Tree[R, N] => (R, Tree[R, N]), r2d: R => Double): Z[R, N] = {
+    val branch2int = q.branches.zipWithIndex.toMap
+    val apacheM = new Array2DRowRealMatrix(q.branches.size, q.branches.size)
+    for (i <- q.branches; j <- q.branches) apacheM.setEntry(branch2int(i), branch2int(j), r2d(M(i)(j)))
+    val apacheMinv = new LUDecomposition(apacheM).getSolver.getInverse
+    val apacheL = new CholeskyDecomposition(apacheM).getL
+    val Minv = M.mapLengths((i, t) => t.mapLengths((j, _) => Field[R].fromDouble(apacheMinv.getEntry(branch2int(i), branch2int(j)))))
+    val L = M.mapLengths((i, t) => t.mapLengths((j, _) => Field[R].fromDouble(apacheL.getEntry(branch2int(i), branch2int(j)))))
+    Z(q, p, Minv, L)(U(q), K(Minv)(p))
+  }
+
 }
