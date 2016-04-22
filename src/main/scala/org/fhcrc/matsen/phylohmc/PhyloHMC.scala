@@ -43,10 +43,7 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val U: Tree[R,
 
   def corruptMomentum(z: Z[R, N]): Z[R, N] = {
     val r = z.q.mapLengths(_ => rng.next(gaussian))
-    val pp = z.p.branches.foldLeft(z.p) { (p, b) =>
-      val x = z.L(b) dot r
-      p.updated(b, p(b) * sqrt1malpha + x * sqrtalpha)
-    }
+    val pp = z.p.mapLengths((b, l) => l * sqrt1malpha + (z.L(b) dot r) * sqrtalpha)
     z.copy(p = pp)(_K = K(z.Minv)(pp))
   }
 
