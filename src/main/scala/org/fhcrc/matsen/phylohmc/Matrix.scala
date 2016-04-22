@@ -10,6 +10,10 @@ class Matrix[R](n: Int, values: Vector[R]) {
 
   def updated(i: Int, j: Int, r: R): Matrix[R] = new Matrix(n, values.updated(index(i, j), r))
 
+  lazy val rows: IndexedSeq[IndexedSeq[R]] = values.sliding(n, n).toVector
+
+  lazy val columns: IndexedSeq[IndexedSeq[R]] = (for (j <- 0 until n) yield (for (i <- 0 until n) yield apply(i, j)).toVector).toVector
+
 }
 
 object Matrix {
