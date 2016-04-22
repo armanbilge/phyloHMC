@@ -37,7 +37,7 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], 
 
   def isPendant(b: Branch[N]): Boolean = !isInternal(b)
 
-  def isInternal(b: Branch[N]): Boolean = isInternal(b.head) & isInternal(b.tail)
+  def isInternal(b: Branch[N]): Boolean = isInternal(b.head) && isInternal(b.tail)
 
   lazy val treeLength: R = implicitly[AdditiveMonoid[R]].sum(lengths.values)
 
