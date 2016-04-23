@@ -11,7 +11,7 @@ trait VuLeapProg[R, N] extends PhyloHMC[R, N] {
       val (z, e) = ze
       val (b, t) = bt
       val zp = leapfrog(t - e)(z)
-      (rng.nextInt(3) match {
+      ((if (zp.q.isInternal(b)) rng.nextInt(3) else 0) match {
         case 0 => zp
         case 1 => zp.nni(b, false, U, K)
         case 2 => zp.nni(b, true, U, K)
