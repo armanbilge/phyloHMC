@@ -103,13 +103,15 @@ object Tree {
     override def plus(x: Tree[R, N], y: Tree[R, N]): Tree[R, N] = {
       import spire.std.map._
       import spire.syntax.vectorSpace._
-      Tree[R, N](x.nodes ++ y.nodes, x.branches ++ y.branches, x.neighbors ++ y.neighbors, x.lengths + y.lengths, x.taxa.orElse(y.taxa))
+      // TODO Check for tree isomorphism
+      Tree[R, N](x.nodes, x.branches, x.neighbors, x.lengths + y.lengths, x.taxa)
     }
 
     override def minus(x: Tree[R, N], y: Tree[R, N]): Tree[R, N] = {
       import spire.std.map._
       import spire.syntax.vectorSpace._
-      Tree[R, N](x.nodes ++ y.nodes, x.branches ++ y.branches, x.neighbors ++ y.neighbors, x.lengths - y.lengths, x.taxa.orElse(y.taxa))
+      // TODO Check for tree isomorphism
+      Tree[R, N](x.nodes, x.branches, x.neighbors, x.lengths - y.lengths, x.taxa)
     }
 
     override def dot(v: Tree[R, N], w: Tree[R, N]): R = {
