@@ -57,7 +57,7 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val posterior:
   override def apply(z: Z[R, N]): Z[R, N] = {
     val zp = flipMomentum(simulateDynamics(z))
     val a = Trig[R].exp(z.H - zp.H) min 1
-    if (rng.next(uniform) < a) zp else z
+    flipMomentum(if (rng.next(uniform) < a) zp else z)
   }
 
 }
