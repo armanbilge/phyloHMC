@@ -22,18 +22,18 @@ class TreeLikelihood[R : Field : Trig, N](val patterns: Patterns, val model: Sub
       val (left, right) = (children.head, children.tail.head)
       val leftMatrix = model(t(Branch(child, left)))
       val rightMatrix = model(t(Branch(child, right)))
-      (left, right) match {
-        case (left, right) if t.isInternal(left) && t.isInternal(right) =>
+      (t.isInternal(left), t.isInternal(right)) match {
+        case (true, true) =>
           val leftPartials = recurse(child, left)
           val rightPartials = recurse(child, right)
           patterns.par.map(p => (p, leftPartials(p), rightPartials(p))).map(Function.tupled((p, x, y) => (p, internalInternal(x, y, leftMatrix, rightMatrix)))).toMap
-        case (left, right) if t.isInternal(left) && t.isLeaf(right) =>
+        case (true, false) =>
           val leftPartials = recurse(child, left)
           patterns.par.map(p => (p, leftPartials(p), p(t.taxa(right)))).map(Function.tupled((p, x, j) => (p, internalLeaf(x, j, leftMatrix, rightMatrix)))).toMap
-        case (left, right) if t.isLeaf(left) && t.isInternal(right) =>
+        case (false, true) =>
           val rightPartials = recurse(child, right)
           patterns.par.map(p => (p, rightPartials(p), p(t.taxa(left)))).map(Function.tupled((p, x, j) => (p, internalLeaf(x, j, rightMatrix, leftMatrix)))).toMap
-        case (left, right) if t.isLeaf(left) && t.isLeaf(right) =>
+        case (false, false) =>
           patterns.par.map(p => (p, p(t.taxa(left)), p(t.taxa(right)))).map(Function.tupled((p, i, j) => (p, leafLeaf(i, j, leftMatrix, rightMatrix)))).toMap
       }
 
