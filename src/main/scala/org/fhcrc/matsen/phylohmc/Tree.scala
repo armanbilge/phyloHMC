@@ -53,7 +53,7 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], 
     val root = neighbors(rho).head
     val newick = recurse(rho, root)
     val i = newick.lastIndexOf(")")
-    (newick.replace(i, i + 1, "," + taxa(rho)) ++= ");").toString()
+    (newick.replace(i, i + 1, "," + taxa(rho).name) ++= ");").toString()
 
   }
 
