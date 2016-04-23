@@ -26,9 +26,9 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val posterior:
     val halfEps = eps / 2
     val pp = z.p - halfEps *: z.dU
     val qp = z.q + eps *: z.dK
-    val dUp = U(pp)
-    val ppp = qp - halfEps *: dUp._2
-    Z(qp, ppp, z.Minv, z.L)(dUp, K(z.Minv)(ppp))
+    val Up = U(qp)
+    val ppp = qp - halfEps *: Up._2
+    Z(qp, ppp, z.Minv, z.L)(Up, K(z.Minv)(ppp))
   }
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N]
