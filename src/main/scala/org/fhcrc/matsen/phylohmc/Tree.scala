@@ -57,6 +57,8 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], 
 
   }
 
+  override lazy val toString = newick
+
 }
 
 object Tree {
