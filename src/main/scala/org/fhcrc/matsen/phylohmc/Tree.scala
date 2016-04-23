@@ -61,7 +61,7 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], 
 
 object Tree {
 
-  def generateNeighbors[N](branches: Set[Branch[N]]) = branches.foldLeft(Map[N, Set[N]]().withDefaultValue(Set())) { (neighbors, b) =>
+  def generateNeighbors[N](nodes: Set[N], branches: Set[Branch[N]]) = branches.foldLeft(nodes.map(_ -> Set[N]()).toMap) { (neighbors, b) =>
     Tree.addNeighbor(b.head, b.tail)(Tree.addNeighbor(b.tail, b.head)(neighbors))
   }
 
@@ -76,7 +76,7 @@ object Tree {
   def removeNeighbor[N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ - e)
 
   def apply[R : AdditiveMonoid, N](nodes: Set[N], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]): Tree[R, N] =
-    Tree(nodes, lengths.keySet, generateNeighbors(lengths.keySet), lengths, taxa)
+    Tree(nodes, lengths.keySet, generateNeighbors(nodes, lengths.keySet), lengths, taxa)
 
   def apply[R : AdditiveMonoid](taxa: TraversableOnce[Taxon], r: => R): Tree[R, Int] = {
     val leaves = taxa.toIndexedSeq.zipWithIndex.map(Function.tupled((t, i) => i -> t)).toMap
