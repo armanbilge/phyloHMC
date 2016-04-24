@@ -26,7 +26,7 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], 
     val x = children(u, v).head
     val y = if (which) children(v, u).head else children(v, u).tail.head
     val (branchesp, neighborsp) = Tree.connect(u, y)(Tree.connect(v, x)(Tree.disconnect(u, x)(Tree.disconnect(v, y)(branches, neighbors))))
-    copy(branches = branchesp, neighbors = neighborsp)
+    copy(branches = branchesp, neighbors = neighborsp, lengths = lengths + (Branch(v, x) -> lengths(Branch(u, x))) + (Branch(u, y) -> lengths(Branch(v, y))) - Branch(u, x) - Branch(v, y))
   }
 
   def children(n: N, p: N): Set[N] = neighbors(n) - p
