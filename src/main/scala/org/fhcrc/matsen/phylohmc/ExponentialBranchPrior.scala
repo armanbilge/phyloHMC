@@ -7,10 +7,7 @@ class ExponentialBranchPrior[R : Field : Trig, N](val lambda: R) extends (Tree[R
 
   val logLambda = Trig[R].log(lambda)
 
-  override def apply(t: Tree[R, N]): (R, Tree[R, N]) = {
-    val tp = -lambda *: t
-    (t.branches.size * logLambda + Field[R].sum(tp.lengths.values), tp)
-  }
+  override def apply(t: Tree[R, N]): (R, Tree[R, N]) = (t.branches.size * logLambda + Field[R].sum((-lambda *: t).lengths.values), t.mapLengths(_ => -lambda))
 
 }
 
