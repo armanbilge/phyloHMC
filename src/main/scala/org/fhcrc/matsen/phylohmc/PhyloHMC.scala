@@ -47,7 +47,7 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val posterior:
   def flipMomentum(z: Z[R, N]): Z[R, N] = z.copy(p = -z.p)(_K = (z.k, -z.dK))
 
   def corruptMomentum(z: Z[R, N]): Z[R, N] = {
-    val r = z.q.mapLengths(_ => rng.next(gaussian))
+    val r = z.q.mapLengths((_, _) => rng.next(gaussian))
     val pp = z.p.mapLengths((b, l) => l * sqrt1malpha + (z.L(b) dot r) * sqrtalpha)
     z.copy(p = pp)(_K = K(z.Minv)(pp))
   }
