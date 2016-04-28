@@ -7,7 +7,7 @@ import spire.syntax.order._
 trait VuLeapProg[R, N] extends PhyloHMC[R, N] {
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
-    val (zp, e) = z.q.lengths.indices.view.map(solveForEps(z)).filter(_ <= eps).zipWithIndex.sortWith(_._1 < _._1).foldLeft((z, Field[R].zero)) { (ze, ti) =>
+    val (zp, e) = z.q.lengths.indices.view.map(solveForEps(z)).zipWithIndex.filter(_._1.isDefined).map(ei => (ei._1.get, ei._2)).filter(_._1 <= eps).sortWith(_._1 < _._1).foldLeft((z, Field[R].zero)) { (ze, ti) =>
       val (z, e) = ze
       val (t, i) = ti
       val zp = leapfrog(t - e)(z)

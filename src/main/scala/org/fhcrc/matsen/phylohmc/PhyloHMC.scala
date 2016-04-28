@@ -44,7 +44,7 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val posterior:
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N]
 
-  def solveForEps(z: Z[R, N])(i: Int): R = {
+  def solveForEps(z: Z[R, N])(i: Int): Option[R] = {
     val twoa = invM.rows(i) dot z.dU
     val b = invM.rows(i) dot z.p
     val c = z.q.lengths(i)
@@ -52,7 +52,11 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val posterior:
     val discriminantdiv2a = NRoot[R].sqrt(b * b - 2 * twoa * c) / twoa
     val eps1 = mbdiv2a + discriminantdiv2a
     val eps2 = mbdiv2a - discriminantdiv2a
-    if (eps1 >= 0 && eps2 >= 0) eps1 min eps2 else eps1 max eps2
+    (eps1 >= 0, eps2 >= 0) match {
+      case (true, true) => Some(eps1 min eps2)
+      case (false, false) => None
+      case _ => Some(eps1 max eps2)
+    }
   }
 
   def flipMomentum(z: Z[R, N]): Z[R, N] = z.copy(p = -z.p)(_K = (z.k, -z.dK))
