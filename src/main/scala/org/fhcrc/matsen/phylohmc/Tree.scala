@@ -2,22 +2,19 @@ package org.fhcrc.matsen.phylohmc
 
 import monocle.function.Index._
 import monocle.std.map._
-import spire.algebra.{AdditiveMonoid, Field, InnerProductSpace}
+import spire.algebra.AdditiveMonoid
 
-case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], neighbors: Map[N, Set[N]], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]) extends PartialFunction[Branch[N], R] {
+case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branchesToIndex: Map[Branch[N], Int], neighbors: Map[N, Set[N]], lengths: IndexedSeq[R], taxa: PartialFunction[N, Taxon]) extends PartialFunction[Branch[N], R] {
 
-  override def isDefinedAt(b: Branch[N]): Boolean = branches contains b
+  val branches = branchesToIndex.keySet
 
-  override def apply(b: Branch[N]): R = lengths(b)
+  override def isDefinedAt(b: Branch[N]): Boolean = branchesToIndex contains b
 
-  def updated(b: Branch[N], r: R): Tree[R, N] = {
-    require(branches contains b)
-    copy(lengths = lengths + (b -> r))
-  }
+  override def apply(b: Branch[N]): R = lengths(branchesToIndex(b))
 
-  def mapLengths[S : AdditiveMonoid](f: R => S): Tree[S, N] = copy(lengths = lengths.mapValues(f))
+  def modifyLengths(f: IndexedSeq[R] => IndexedSeq[R]): Tree[R, N] = copy(lengths = f(lengths))
 
-  def mapLengths[S : AdditiveMonoid](f: (Branch[N], R) => S) = copy(lengths = lengths.map(Function.tupled((b, l) => b -> f(b, l))))
+  def nni(i: Int, which: Boolean): Tree[R, N] = nni(branchesToIndex.find(_._2 == i).get._1, which)
 
   def nni(b: Branch[N], which: Boolean): Tree[R, N] = {
     require(isInternal(b))
@@ -25,8 +22,8 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], 
     val v = b.tail
     val x = children(u, v).head
     val y = if (which) children(v, u).head else children(v, u).tail.head
-    val (branchesp, neighborsp) = Tree.connect(u, y)(Tree.connect(v, x)(Tree.disconnect(u, x)(Tree.disconnect(v, y)(branches, neighbors))))
-    copy(branches = branchesp, neighbors = neighborsp, lengths = lengths + (Branch(v, x) -> lengths(Branch(u, x))) + (Branch(u, y) -> lengths(Branch(v, y))) - Branch(u, x) - Branch(v, y))
+    val (branchesp, neighborsp) = Tree.connect(u, y, branchesToIndex(Branch(v, y)))(Tree.disconnect(v, y)(Tree.connect(v, x, branchesToIndex(Branch(v, x)))(Tree.disconnect(u, x)(branchesToIndex, neighbors))))
+    copy(branchesToIndex = branchesp, neighbors = neighborsp)
   }
 
   def children(n: N, p: N): Set[N] = neighbors(n) - p
@@ -39,7 +36,7 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branches: Set[Branch[N]], 
 
   def isInternal(b: Branch[N]): Boolean = isInternal(b.head) && isInternal(b.tail)
 
-  lazy val treeLength: R = implicitly[AdditiveMonoid[R]].sum(lengths.values)
+  lazy val treeLength: R = implicitly[AdditiveMonoid[R]].sum(lengths)
 
   lazy val newick: String = {
 
@@ -67,18 +64,20 @@ object Tree {
     Tree.addNeighbor(b.head, b.tail)(Tree.addNeighbor(b.tail, b.head)(neighbors))
   }
 
-  def connect[N](x: N, y: N)(bn: (Set[Branch[N]], Map[N, Set[N]])) =
-    (bn._1 + Branch(x, y), addNeighbor(x, y)(addNeighbor(y, x)(bn._2)))
+  def connect[N](x: N, y: N, i: Int)(bn: (Map[Branch[N], Int], Map[N, Set[N]])) =
+    (bn._1 + (Branch(x, y) -> i), addNeighbor(x, y)(addNeighbor(y, x)(bn._2)))
 
-  def disconnect[N](x: N, y: N)(bn: (Set[Branch[N]], Map[N, Set[N]])) =
+  def disconnect[N](x: N, y: N)(bn: (Map[Branch[N], Int], Map[N, Set[N]])) =
     (bn._1 - Branch(x, y), removeNeighbor(x, y)(removeNeighbor(y, x)(bn._2)))
 
   def addNeighbor[N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ + e)
 
   def removeNeighbor[N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ - e)
 
-  def apply[R : AdditiveMonoid, N](nodes: Set[N], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]): Tree[R, N] =
-    Tree(nodes, lengths.keySet, generateNeighbors(nodes, lengths.keySet), lengths, taxa)
+  def apply[R : AdditiveMonoid, N](nodes: Set[N], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]): Tree[R, N] = {
+    val branchesToIndex = lengths.keys.seq.zipWithIndex.toMap
+    Tree(nodes, branchesToIndex, generateNeighbors(nodes, lengths.keySet), IndexedSeq.tabulate(lengths.size)(lengths.map(Function.tupled((k, v) => branchesToIndex(k) -> v))), taxa)
+  }
 
   def apply[R : AdditiveMonoid](taxa: TraversableOnce[Taxon], r: => R): Tree[R, Int] = {
     val leaves = taxa.toIndexedSeq.zipWithIndex.map(Function.tupled((t, i) => i -> t)).toMap
@@ -90,37 +89,6 @@ object Tree {
     }
     val branchesp = branches + Branch(rho, root.head)
     Tree((0 until (2 * leaves.size - 2)).toSet, branchesp.map(_ -> r).toMap, leaves)
-  }
-
-  implicit def TreeIsInnerProductSpace[R, N](implicit f: Field[R]) = new InnerProductSpace[Tree[R, N], R] {
-
-    override def scalar: Field[R] = f
-
-    override def timesl(r: R, v: Tree[R, N]): Tree[R, N] = v.copy(lengths = v.lengths.map(Function.tupled((b, l) => b -> f.times(l, r))))
-
-    override def negate(x: Tree[R, N]): Tree[R, N] = x.copy(lengths = x.lengths.map(Function.tupled((b, l) => b -> f.negate(l))))
-
-    override def zero: Tree[R, N] = Tree[R, N](Set[N](), Set[Branch[N]](), Map[N, Set[N]](), Map[Branch[N], R](), Map[N, Taxon]())
-
-    override def plus(x: Tree[R, N], y: Tree[R, N]): Tree[R, N] = {
-      import spire.std.map._
-      import spire.syntax.vectorSpace._
-      // TODO Check for tree isomorphism
-      Tree[R, N](x.nodes, x.branches, x.neighbors, x.lengths + y.lengths, x.taxa)
-    }
-
-    override def minus(x: Tree[R, N], y: Tree[R, N]): Tree[R, N] = {
-      import spire.std.map._
-      import spire.syntax.vectorSpace._
-      // TODO Check for tree isomorphism
-      Tree[R, N](x.nodes, x.branches, x.neighbors, x.lengths - y.lengths, x.taxa)
-    }
-
-    override def dot(v: Tree[R, N], w: Tree[R, N]): R = {
-      import spire.syntax.field._
-      Field[R].sum((v.branches intersect w.branches).map(b => v(b) * w(b)))
-    }
-
   }
 
 }
