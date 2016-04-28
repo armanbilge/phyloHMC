@@ -24,7 +24,7 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branchesToIndex: Map[Branc
     val v = b.tail
     val x = children(u, v).head
     val y = if (which) children(v, u).head else children(v, u).tail.head
-    val (branchesp, neighborsp) = Tree.connect(u, y, branchesToIndex(Branch(v, y)))(Tree.disconnect(v, y)(Tree.connect(v, x, branchesToIndex(Branch(v, x)))(Tree.disconnect(u, x)(branchesToIndex, neighbors))))
+    val (branchesp, neighborsp) = Tree.connect(u, y, branchesToIndex(Branch(v, y)))(Tree.disconnect(v, y)(Tree.connect(v, x, branchesToIndex(Branch(u, x)))(Tree.disconnect(u, x)(branchesToIndex, neighbors))))
     copy(branchesToIndex = branchesp, neighbors = neighborsp)
   }
 
