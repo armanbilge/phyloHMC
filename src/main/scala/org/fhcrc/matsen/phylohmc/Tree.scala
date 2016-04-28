@@ -14,7 +14,9 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branchesToIndex: Map[Branc
 
   def modifyLengths(f: IndexedSeq[R] => IndexedSeq[R]): Tree[R, N] = copy(lengths = f(lengths))
 
-  def nni(i: Int, which: Boolean): Tree[R, N] = nni(branchesToIndex.find(_._2 == i).get._1, which)
+  def indexToBranch(i: Int) = branchesToIndex.find(_._2 == i).get._1
+
+  def nni(i: Int, which: Boolean): Tree[R, N] = nni(indexToBranch(i), which)
 
   def nni(b: Branch[N], which: Boolean): Tree[R, N] = {
     require(isInternal(b))
@@ -35,6 +37,8 @@ case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branchesToIndex: Map[Branc
   def isPendant(b: Branch[N]): Boolean = !isInternal(b)
 
   def isInternal(b: Branch[N]): Boolean = isInternal(b.head) && isInternal(b.tail)
+
+  def isInternal(i: Int): Boolean = isInternal(indexToBranch(i))
 
   lazy val treeLength: R = implicitly[AdditiveMonoid[R]].sum(lengths)
 

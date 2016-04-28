@@ -8,14 +8,15 @@ trait ReflectiveLeapProg[R, N] extends PhyloHMC[R, N] {
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
     val zp = leapfrog(eps)(z)
-    val zpp = zp.copy(q = zp.q.mapLengths(Signed[R].abs(_)))()
-    zpp.q.branches.map(b => (b, solveForEps(z)(b))).filter(x => x._2 <= eps).toList.sortWith(_._2 < _._2).view.map(_._1).foldLeft(zpp) { (z, b) =>
-      val zp = z.copy(p = z.p.updated(b, z.p(b)))(_K = (z.k, -z.dK))
-      (if (zp.q.isInternal(b)) rng.nextInt(3) else 0) match {
-        case 0 => zp
-        case 1 => zp.nni(b, false, U, K)
-        case 2 => zp.nni(b, true, U, K)
+    val qp = zp.q.modifyLengths(_.map(Signed[R].abs))
+    qp.lengths.indices.view.map(solveForEps(z)).filter(_ <= eps).zipWithIndex.sortWith(_._1 < _._1).view.map(_._2).foldLeft(zp.copy(q = qp)(_U = U(qp))) { (z, i) =>
+      val q = (if (z.q.isInternal(i)) rng.nextInt(3) else 0) match {
+        case 0 => z.q
+        case 1 => z.q.nni(i, false)
+        case 2 => z.q.nni(i, true)
       }
+      val p = z.p.updated(i, -z.p(i))
+      z.copy(q = q, p = p)(U(q), K(p))
     }
   }
 
