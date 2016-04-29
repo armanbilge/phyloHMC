@@ -16,7 +16,7 @@ trait ReflectiveLeapProg[R, N] extends PhyloHMC[R, N] {
         case 1 => z.q.nni(i, false)
         case 2 => z.q.nni(i, true)
       }
-      val p = z.p.updated(i, -z.p(i))
+      val p = zp.p.updated(i, -zp.p(i))
       z.copy(q = q, p = p)(U(q), K(p))
     }
   }
