@@ -4,7 +4,7 @@ import spire.algebra.Field
 import spire.std.seq._
 import spire.syntax.innerProductSpace._
 
-class Matrix[R : Field](val size: Int, val values: Vector[R]) {
+class Matrix[@specialized(Double) R : Field](val size: Int, val values: Vector[R]) {
 
   require(values.length == size * size)
 
@@ -26,8 +26,8 @@ class Matrix[R : Field](val size: Int, val values: Vector[R]) {
 
 object Matrix {
 
-  def apply[R : Field](values: R*): Matrix[R] = new Matrix(Math.sqrt(values.size).toInt, values.toVector)
+  def apply[@specialized(Double) R : Field](values: R*): Matrix[R] = new Matrix(Math.sqrt(values.size).toInt, values.toVector)
 
-  def apply[R : Field](n: Int)(f: (Int, Int) => R): Matrix[R] = new Matrix(n, Vector.tabulate(n * n)(k => f(k / n, k % n)))
+  def apply[@specialized(Double) R : Field](n: Int)(f: (Int, Int) => R): Matrix[R] = new Matrix(n, Vector.tabulate(n * n)(k => f(k / n, k % n)))
 
 }

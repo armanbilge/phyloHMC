@@ -3,7 +3,7 @@ package org.fhcrc.matsen.phylohmc
 import spire.algebra.{Field, Trig}
 import spire.syntax.field._
 
-class JC[R : Field : Trig] extends SubstitutionModel[R] {
+class JC[@specialized(Double) R : Field : Trig] extends SubstitutionModel[R] {
 
   override val stationaryDistribution: IndexedSeq[R] = IndexedSeq.fill(4)(Field[R].fromDouble(0.25))
 

@@ -3,7 +3,7 @@ package org.fhcrc.matsen.phylohmc
 import spire.algebra.{Field, Trig}
 import spire.syntax.field._
 
-class HKY[R : Field : Trig](val stationaryDistribution: IndexedSeq[R], val kappa: R) extends SubstitutionModel[R] {
+class HKY[@specialized(Double) R : Field : Trig](val stationaryDistribution: IndexedSeq[R], val kappa: R) extends SubstitutionModel[R] {
 
   val freqA = stationaryDistribution(0)
   val freqC = stationaryDistribution(1)

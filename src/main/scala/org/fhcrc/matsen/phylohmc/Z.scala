@@ -3,7 +3,7 @@ package org.fhcrc.matsen.phylohmc
 import spire.algebra.Field
 import spire.syntax.field._
 
-case class Z[R : Field, N](q: Tree[R, N], p: IndexedSeq[R])(_U: => (R, IndexedSeq[R]), _K: => (R, IndexedSeq[R])) {
+case class Z[@specialized(Double) R : Field, @specialized(Int) N](q: Tree[R, N], p: IndexedSeq[R])(_U: => (R, IndexedSeq[R]), _K: => (R, IndexedSeq[R])) {
   lazy val (u, dU) = _U
   lazy val (k, dK) = _K
   lazy val H = u + k
