@@ -110,13 +110,13 @@ case class Branch[@specialized(Int) N](head: N, tail: N) {
     case `tail` => head
   }
 
-  override val toString: String = s"($head, $tail)"
+  override lazy val toString: String = s"($head, $tail)"
 
   override def equals(that: Any): Boolean = that match {
     case that: Branch[N] => (head == that.head && tail == that.tail) || (head == that.tail && tail == that.head)
     case _ => false
   }
 
-  override val hashCode: Int = Set(head, tail).hashCode()
+  override lazy val hashCode: Int = Set(head, tail).hashCode()
 
 }
