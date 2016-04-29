@@ -45,7 +45,7 @@ abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val posterior:
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N]
 
   def solveForEps(z: Z[R, N])(i: Int): Option[R] = {
-    val twoa = invM.rows(i) dot z.dU
+    val twoa = - invM.rows(i) dot z.dU
     val b = invM.rows(i) dot z.p
     val c = z.q.lengths(i)
     val mbdiv2a = - b / twoa
