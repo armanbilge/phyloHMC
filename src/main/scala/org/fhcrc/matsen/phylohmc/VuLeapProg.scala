@@ -1,6 +1,6 @@
 package org.fhcrc.matsen.phylohmc
 
-import spire.algebra.{Field, Order}
+import spire.algebra.{Field, Order, Signed}
 import spire.syntax.field._
 import spire.syntax.order._
 
@@ -20,7 +20,8 @@ trait VuLeapProg[R, N] extends PhyloHMC[R, N] {
             case 1 => zp.q.nni(i, false)
             case 2 => zp.q.nni(i, true)
           }).modifyLengths(_.updated(i, Field[R].zero))
-          val p = zp.p.updated(i, -zp.p(i))
+          // TODO What is the best way to handle this?
+          val p = zp.p.updated(i, Signed[R].abs(zp.p(i)))
           recurse(zp.copy(q = q, p = p)(U(q), K(p)), eps - e)
         case None => leapfrog(eps)(z)
       }
