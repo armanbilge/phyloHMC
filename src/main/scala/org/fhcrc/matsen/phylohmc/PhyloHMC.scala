@@ -7,7 +7,7 @@ import spire.std.seq._
 import spire.syntax.innerProductSpace._
 import spire.syntax.order._
 
-abstract class PhyloHMC[@specialized(Double) R : NRoot : Trig : Uniform : Gaussian, @specialized(Int) N](val posterior: Tree[R, N] => (R, IndexedSeq[R]), val M: Matrix[R], val alpha: R, val eps: R, val L: Int, val RToDouble: R => Double)(implicit val rng: Generator, implicit val f: Field[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
+abstract class PhyloHMC[R : NRoot : Trig : Uniform : Gaussian, N](val posterior: Tree[R, N] => (R, IndexedSeq[R]), val M: Matrix[R], val alpha: R, val eps: R, val L: Int, val RToDouble: R => Double)(implicit val rng: Generator, implicit val f: Field[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
 
   val (invM, choleskyL) = {
     val apacheM = new Array2DRowRealMatrix(M.size, M.size)

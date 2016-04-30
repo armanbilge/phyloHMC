@@ -4,7 +4,7 @@ import monocle.function.Index._
 import monocle.std.map._
 import spire.algebra.AdditiveMonoid
 
-case class Tree[@specialized(Double) R : AdditiveMonoid, @specialized(Int) N](nodes: Set[N], branchesToIndex: Map[Branch[N], Int], neighbors: Map[N, Set[N]], lengths: IndexedSeq[R], taxa: PartialFunction[N, Taxon]) extends PartialFunction[Branch[N], R] {
+case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branchesToIndex: Map[Branch[N], Int], neighbors: Map[N, Set[N]], lengths: IndexedSeq[R], taxa: PartialFunction[N, Taxon]) extends PartialFunction[Branch[N], R] {
 
   val branches = branchesToIndex.keySet
 
@@ -68,15 +68,15 @@ object Tree {
     Tree.addNeighbor(b.head, b.tail)(Tree.addNeighbor(b.tail, b.head)(neighbors))
   }
 
-  def connect[@specialized(Int) N](x: N, y: N, i: Int)(bn: (Map[Branch[N], Int], Map[N, Set[N]])) =
+  def connect[N](x: N, y: N, i: Int)(bn: (Map[Branch[N], Int], Map[N, Set[N]])) =
     (bn._1 + (Branch(x, y) -> i), addNeighbor(x, y)(addNeighbor(y, x)(bn._2)))
 
-  def disconnect[@specialized(Int) N](x: N, y: N)(bn: (Map[Branch[N], Int], Map[N, Set[N]])) =
+  def disconnect[N](x: N, y: N)(bn: (Map[Branch[N], Int], Map[N, Set[N]])) =
     (bn._1 - Branch(x, y), removeNeighbor(x, y)(removeNeighbor(y, x)(bn._2)))
 
-  def addNeighbor[@specialized(Int) N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ + e)
+  def addNeighbor[N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ + e)
 
-  def removeNeighbor[@specialized(Int) N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ - e)
+  def removeNeighbor[N](i: N, e: N) = index[Map[N, Set[N]], N, Set[N]](i).modify(_ - e)
 
   def apply[R : AdditiveMonoid, N](nodes: Set[N], lengths: Map[Branch[N], R], taxa: PartialFunction[N, Taxon]): Tree[R, N] = {
     val branchesToIndex = lengths.keys.seq.zipWithIndex.toMap
@@ -97,7 +97,7 @@ object Tree {
 
 }
 
-case class Branch[@specialized(Int) N](head: N, tail: N) {
+case class Branch[N](head: N, tail: N) {
 
   def incident(n: N): Boolean = n match {
     case `head` => true
@@ -110,13 +110,13 @@ case class Branch[@specialized(Int) N](head: N, tail: N) {
     case `tail` => head
   }
 
-  override lazy val toString: String = s"($head, $tail)"
+  override val toString: String = s"($head, $tail)"
 
   override def equals(that: Any): Boolean = that match {
     case that: Branch[N] => (head == that.head && tail == that.tail) || (head == that.tail && tail == that.head)
     case _ => false
   }
 
-  override lazy val hashCode: Int = Set(head, tail).hashCode()
+  override val hashCode: Int = Set(head, tail).hashCode()
 
 }

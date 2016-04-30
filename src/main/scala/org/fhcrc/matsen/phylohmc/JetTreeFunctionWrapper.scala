@@ -5,7 +5,7 @@ import spire.math.{Jet, JetDim}
 
 import scala.reflect.ClassTag
 
-class JetTreeFunctionWrapper[@specialized(Double) R : Eq : Field : NRoot : IsReal : Trig : ClassTag, @specialized(Int) N](f: Tree[Jet[R], N] => Jet[R]) extends (Tree[R, N] => (R, IndexedSeq[R])) {
+class JetTreeFunctionWrapper[R : Eq : Field : NRoot : IsReal : Trig : ClassTag, N](f: Tree[Jet[R], N] => Jet[R]) extends (Tree[R, N] => (R, IndexedSeq[R])) {
 
   override def apply(t: Tree[R, N]): (R, IndexedSeq[R]) = {
     implicit val jetDim = JetDim(t.lengths.size)

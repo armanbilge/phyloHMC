@@ -6,7 +6,7 @@ import spire.syntax.innerProductSpace._
 
 import scala.collection.GenMap
 
-class TreeLikelihood[@specialized(Double) R : Field : Trig, @specialized(Int) N](val patterns: Patterns, val model: SubstitutionModel[R], val mu: R) extends (Tree[R, N] => R) {
+class TreeLikelihood[R : Field : Trig, N](val patterns: Patterns, val model: SubstitutionModel[R], val mu: R) extends (Tree[R, N] => R) {
 
   override def apply(t: Tree[R, N]): R = {
 

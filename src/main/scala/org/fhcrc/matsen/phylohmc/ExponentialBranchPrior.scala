@@ -4,7 +4,7 @@ import spire.algebra.{Field, Trig}
 import spire.std.seq._
 import spire.syntax.vectorSpace._
 
-class ExponentialBranchPrior[@specialized(Double) R : Field : Trig, @specialized(Int) N](val lambda: R) extends (Tree[R, N] => (R, IndexedSeq[R])) {
+class ExponentialBranchPrior[R : Field : Trig, N](val lambda: R) extends (Tree[R, N] => (R, IndexedSeq[R])) {
 
   val logLambda = Trig[R].log(lambda)
 
