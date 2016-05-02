@@ -1,7 +1,8 @@
 package org.fhcrc.matsen.phylohmc
 
 import spire.algebra.{Field, Order, Signed}
-import spire.syntax.field._
+import spire.std.seq._
+import spire.syntax.vectorSpace._
 import spire.syntax.order._
 
 import scala.annotation.tailrec
@@ -12,6 +13,17 @@ trait VuLeapProg[R, N] extends PhyloHMC[R, N] {
 
     @tailrec
     def recurse(z: Z[R, N], eps: R): Z[R, N] = {
+
+      def leapfrog(eps: R)(z: Z[R, N]): Z[R, N] = {
+        val halfEps = eps / 2
+        val pp = z.p - halfEps *: z.dU
+        val (_, dK) = K(pp)
+        val qp = z.q.modifyLengths(_ + eps *: dK)
+        val Up = U(qp)
+        val ppp = pp - halfEps *: Up._2
+        Z(qp, ppp)(Up, K(ppp))
+      }
+
       z.q.lengths.indices.view.map(solveForEps(z)).zipWithIndex.filter(_._1.isDefined).map(ei => (ei._1.get, ei._2)).filter(_._1 <= eps).reduceOption(Order.by[(R, Int), R](_._1).min) match {
         case Some((e, i)) =>
           val zp = leapfrog(e)(z)
