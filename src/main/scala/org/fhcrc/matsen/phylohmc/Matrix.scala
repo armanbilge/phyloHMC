@@ -8,7 +8,7 @@ class Matrix[R : Field](val size: Int, val values: Vector[R]) {
 
   require(values.length == size * size)
 
-  @inline def index(i: Int, j: Int): Int = size * i + j
+  @inline final def index(i: Int, j: Int): Int = size * i + j
 
   def apply(i: Int, j: Int): R = values(index(i, j))
 
