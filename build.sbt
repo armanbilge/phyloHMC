@@ -1,5 +1,5 @@
 name := "phyloHMC"
-version := "1.0"
+enablePlugins(GitVersioning)
 scalaVersion := "2.11.8"
 scalacOptions += "-optimize"
 libraryDependencies += "com.github.julien-truffaut" %% "monocle-core" % "1.2.0"
