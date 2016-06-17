@@ -18,7 +18,7 @@ trait ReflectiveLeapProg[R, N] extends PhyloHMC[R, N] {
     val qpp = qp.modifyLengths(l => l.zipWithIndex.map(Function.tupled((li, i) => if (qp.isInternal(i)) Signed[R].abs(li) else Signed[R].abs(li - barrier) + barrier)))
     val ppp = (qp.lengths, pp, pp.indices).zipped.map((qi, pi, i) => if (qp.isInternal(i)) pi else if (qi < barrier) -pi else pi)
     val zp = (z.q.lengths, Kp._2).zipped.map(- _ / _).zipWithIndex.filter(Function.tupled((_, i) => z.q.isInternal(i))).filter(Function.tupled((e, _) => Field[R].zero <= e && e <= eps)).sortBy(_._1).view.map(_._2).foldLeft(z.copy(q = qpp, p = ppp)(U(qpp), K(ppp))) { (z, i) =>
-      val q = (if (z.q.isInternal(i)) rng.nextInt(1) else 0) match {
+      val q = (if (z.q.isInternal(i)) rng.nextInt(3) else 0) match {
         case 0 => z.q
         case 1 => z.q.nni(i, false)
         case 2 => z.q.nni(i, true)
