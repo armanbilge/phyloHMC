@@ -2,7 +2,7 @@ package org.fredhutch.matsen.phylohmc
 
 import java.util
 
-import com.sun.jna.{Native, Structure}
+import com.sun.jna.{Native, NativeLibrary, Pointer, Structure}
 
 package object pll {
 
@@ -21,11 +21,17 @@ package object pll {
 
   }
 
+  private[pll] val pll_map_bin = NativeLibrary.getInstance("pll").getGlobalVariableAddress("pll_map_bin")
+
+  private[pll] val pll_map_nt = NativeLibrary.getInstance("pll").getGlobalVariableAddress("pll_map_nt")
+
+  private[pll] val pll_map_aa = NativeLibrary.getInstance("pll").getGlobalVariableAddress("pll_map_aa")
+
   @native private[pll] def pll_partition_create(tips: Int, clv_buffers: Int, states: Int, sites: Int, rate_matrices: Int, prob_matrices: Int, rate_cats: Int, scale_buffers: Int, attributes: Int): PartitionPointer
 
   @native private[pll] def pll_partition_destroy(partition: PartitionPointer): Unit
 
-  @native private[pll] def pll_set_tip_states(partition: PartitionPointer, tip_index: Int, map: Array[Int], sequence: String): Int
+  @native private[pll] def pll_set_tip_states(partition: PartitionPointer, tip_index: Int, map: Pointer, sequence: String): Int
 
   @native private[pll] def pll_set_tip_clv(partition: PartitionPointer, tip_index: Int, clv: Array[Double]): Unit
 
