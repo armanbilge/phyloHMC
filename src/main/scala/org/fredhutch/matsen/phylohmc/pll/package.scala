@@ -10,8 +10,15 @@ package object pll {
 
   private[pll] trait PartitionPointer extends Structure.ByReference
 
-  private[pll] class OperationPointer(parent_clv_index: Int, parent_scaler_index: Int, child1_clv_index: Int, child1_matrix_index: Int, child1_scaler_index: Int, child2_clv_index: Int, child2_matrix_index: Int, child2_scaler_index: Int) extends Structure with Structure.ByReference {
+  private[pll] class OperationPointer(var parent_clv_index: Int, var parent_scaler_index: Int, var child1_clv_index: Int, var child1_matrix_index: Int, var child1_scaler_index: Int, var child2_clv_index: Int, var child2_matrix_index: Int, var child2_scaler_index: Int) extends Structure with Structure.ByReference {
+
+    setAutoSynch(false)
+    setAutoWrite(true)
+
+    def this() = this(0, 0, 0, 0, 0, 0, 0, 0)
+
     override def getFieldOrder: util.List[_] = util.Arrays.asList("parent_clv_index", "parent_scaler_index", "child1_clv_index", "child1_matrix_index", "child1_scaler_index", "child2_clv_index", "child2_matrix_index", "child2_scaler_index")
+
   }
 
   @native private[pll] def pll_partition_create(tips: Int, clv_buffers: Int, states: Int, sites: Int, rate_matrices: Int, prob_matrices: Int, rate_cats: Int, scale_buffers: Int, attributes: Int): PartitionPointer
