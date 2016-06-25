@@ -28,6 +28,12 @@ package object pll {
 
   @native private[pll] def pll_set_frequencies(partition: PartitionPointer, params_index: Int, frequencies: Array[Double]): Unit
 
+  @native private[pll] def pll_set_category_rates(partition: PartitionPointer, rates: Array[Double]): Unit
+
+  @native private[pll] def pll_set_category_weights(partition: PartitionPointer, rate_weights: Array[Double]): Unit
+
+  @native private[pll] def pll_update_eigen(partition: PartitionPointer, params_index: Int): Unit
+
   @native private[pll] def pll_update_prob_matrices(partition: PartitionPointer, params_index: Int, matrix_indices: Array[Int], branch_lengths: Array[Double], count: Int): Unit
 
   @native private[pll] def pll_update_invariant_sites(partition: PartitionPointer): Int
@@ -43,5 +49,7 @@ package object pll {
   @native private[pll] def pll_update_sumtable(partition: PartitionPointer, parent_clv_index: Int, child_clv_index: Int, params_indices: Array[Int], sumtable: Array[Double]): Int
 
   @native private[pll] def pll_compute_likelihood_derivatives(partition: PartitionPointer, parent_scaler_index: Int, child_scaler_index: Int, branch_length: Double, params_indices: Array[Int], sumtable: Array[Double], d_f: Array[Double], dd_f: Array[Double]): Double
+
+  @native private[pll] def pll_compute_gamma_cats(alpha: Double, categories: Int, output_rates: Double): Int
 
 }
