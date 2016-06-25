@@ -1,4 +1,4 @@
-package org.fhcrc.matsen.phylohmc
+package org.fredhutch.matsen.phylohmc
 
 import org.apache.commons.math3.linear.{Array2DRowRealMatrix, CholeskyDecomposition, LUDecomposition}
 import spire.algebra._

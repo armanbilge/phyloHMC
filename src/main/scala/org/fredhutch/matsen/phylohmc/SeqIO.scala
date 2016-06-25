@@ -1,4 +1,4 @@
-package org.fhcrc.matsen.phylohmc
+package org.fredhutch.matsen.phylohmc
 
 import scala.io.Source
 

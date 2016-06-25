@@ -1,9 +1,9 @@
-package org.fhcrc.matsen.phylohmc
+package org.fredhutch.matsen.phylohmc
 
 import spire.algebra.{Field, Signed}
 import spire.std.seq._
-import spire.syntax.vectorSpace._
 import spire.syntax.order._
+import spire.syntax.vectorSpace._
 
 trait ReflectiveLeapFrog[R, N] extends PhyloHMC[R, N] {
 

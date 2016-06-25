@@ -1,4 +1,4 @@
-package org.fhcrc.matsen.phylohmc
+package org.fredhutch.matsen.phylohmc
 
 import spire.algebra.{Field, Trig}
 import spire.std.seq._
