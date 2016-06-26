@@ -12,7 +12,7 @@ package object pll {
   object AA extends DataType
 
   def computeGammaCats(alpha: Double, categories: Int): Array[Double] = {
-    val rates = Array.fill(categories)(0.0)
+    val rates = Array.ofDim[Double](categories)
     pll_compute_gamma_cats(alpha, categories, rates)
     rates
   }
