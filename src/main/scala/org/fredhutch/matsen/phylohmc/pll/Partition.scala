@@ -1,6 +1,16 @@
 package org.fredhutch.matsen.phylohmc.pll
 
-class Partition(tips: Int, clvBuffers: Int, states: Int, sites: Int, rateMatrices: Int, probMatrices: Int, rateCats: Int, scaleBuffers: Int, attributes: Int) {
+class Partition(tips: Int, clvBuffers: Int, states: Int, sites: Int, rateMatrices: Int, probMatrices: Int, rateCats: Int, scaleBuffers: Int, sse: Boolean = false, avx: Boolean = false, avx2: Boolean = false, avx512: Boolean = false, tipPatternCompression: Boolean = false) {
+
+  private[this] val attributes = {
+    var attributes = 0
+    if (sse) attributes |= PLL_ATTRIB_ARCH_SSE
+    if (avx) attributes |= PLL_ATTRIB_ARCH_AVX
+    if (avx2) attributes |= PLL_ATTRIB_ARCH_AVX2
+    if (avx512) attributes |= PLL_ATTRIB_ARCH_AVX512
+    if (tipPatternCompression) attributes |= PLL_ATTRIB_PATTERN_TIP
+    attributes
+  }
 
   private[this] val self = pll_partition_create(tips, clvBuffers, states, sites, rateMatrices, probMatrices, rateCats, scaleBuffers, attributes)
 

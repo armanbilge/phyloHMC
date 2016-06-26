@@ -30,6 +30,12 @@ package object pll {
 
   }
 
+  private[pll] val PLL_ATTRIB_ARCH_SSE = 1 << 0
+  private[pll] val PLL_ATTRIB_ARCH_AVX = 1 << 1
+  private[pll] val PLL_ATTRIB_ARCH_AVX2 = 1 << 2
+  private[pll] val PLL_ATTRIB_ARCH_AVX512 = 1 << 3
+  private[pll] val PLL_ATTRIB_PATTERN_TIP = 1 << 4
+
   private[pll] val pll_map_bin = NativeLibrary.getInstance("pll").getGlobalVariableAddress("pll_map_bin")
 
   private[pll] val pll_map_nt = NativeLibrary.getInstance("pll").getGlobalVariableAddress("pll_map_nt")
