@@ -42,7 +42,7 @@ class Partition(tips: Int, clvBuffers: Int, states: Int, sites: Int, rateMatrice
 
   def updateInvariantSitesProportion(paramsIndex: Int, propInvar: Double) = pll_update_invariant_sites_proportion(self, paramsIndex, propInvar)
 
-  def updatePartials(operations: pll_operation, count: Int) = pll_update_partials(self, operations, count)
+  def updatePartials(operations: Operations) = pll_update_partials(self, operations.pll_operation, operations.count)
 
   def computeRootLogLikelihood(clvIndex: Int, scalerIndex: Int, freqsIndex: Array[Int], persiteLnL: Array[Double]) = pll_compute_root_loglikelihood(self, clvIndex, scalerIndex, freqsIndex, persiteLnL)
 
