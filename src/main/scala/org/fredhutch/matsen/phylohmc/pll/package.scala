@@ -62,7 +62,7 @@ package object pll {
 
   @native private[pll] def pll_update_eigen(partition: Pointer, params_index: Int): Unit
 
-  @native private[pll] def pll_update_prob_matrices(partition: Pointer, params_index: Int, matrix_indices: Array[Int], branch_lengths: Array[Double], count: Int): Unit
+  @native private[pll] def pll_update_prob_matrices(partition: Pointer, params_indices: Array[Int], matrix_indices: Array[Int], branch_lengths: Array[Double], count: Int): Unit
 
   @native private[pll] def pll_update_invariant_sites(partition: Pointer): Int
 

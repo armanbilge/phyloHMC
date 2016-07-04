@@ -36,7 +36,7 @@ class Partition(tips: Int, clvBuffers: Int, states: Int, sites: Int, rateMatrice
 
   def updateEigen(paramsIndex: Int) = pll_update_eigen(self, paramsIndex)
 
-  def updateProbMatrices(paramsIndex: Int, matrixIndices: Array[Int], branchLengths: Array[Double], count: Int) = pll_update_prob_matrices(self, paramsIndex, matrixIndices, branchLengths, count)
+  def updateProbMatrices(paramsIndices: Array[Int], matrixIndices: Array[Int], branchLengths: Array[Double], count: Int) = pll_update_prob_matrices(self, paramsIndices, matrixIndices, branchLengths, count)
 
   def updateInvariantSites() = pll_update_invariant_sites(self)
 
