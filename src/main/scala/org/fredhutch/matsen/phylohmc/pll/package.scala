@@ -1,8 +1,6 @@
 package org.fredhutch.matsen.phylohmc
 
-import java.util
-
-import com.sun.jna.{Native, NativeLibrary, Pointer, Structure}
+import com.sun.jna.{Native, NativeLibrary, Pointer}
 
 package object pll {
 
@@ -18,17 +16,6 @@ package object pll {
   }
 
   Native.register("pll")
-
-  private[pll] class pll_operation(var parent_clv_index: Int, var parent_scaler_index: Int, var child1_clv_index: Int, var child1_matrix_index: Int, var child1_scaler_index: Int, var child2_clv_index: Int, var child2_matrix_index: Int, var child2_scaler_index: Int) extends Structure with Structure.ByReference {
-
-    setAutoSynch(false)
-    setAutoWrite(true)
-
-    def this() = this(0, 0, 0, 0, 0, 0, 0, 0)
-
-    override def getFieldOrder: util.List[_] = util.Arrays.asList("parent_clv_index", "parent_scaler_index", "child1_clv_index", "child1_matrix_index", "child1_scaler_index", "child2_clv_index", "child2_matrix_index", "child2_scaler_index")
-
-  }
 
   private[pll] val PLL_ATTRIB_ARCH_SSE = 1 << 0
   private[pll] val PLL_ATTRIB_ARCH_AVX = 1 << 1
