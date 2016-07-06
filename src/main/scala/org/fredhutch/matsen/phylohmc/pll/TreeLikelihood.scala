@@ -55,14 +55,13 @@ class TreeLikelihood[N](patterns: Map[Map[Taxon, Char], Int], gtr: GTR, mu: Doub
     val nodesToCLVs = m + (rho -> rhoCLV)
     partition.updatePartials(operations)
     val logL = partition.computeEdgeLogLikelihood(rhoCLV, -1, rootCLV, -1, t.branchesToIndex(Branch(rho, root)), Array(0), null)
-    val sumtable = new Array[Double](4)
     val df = new Array[Double](1)
     val ddf = new Array[Double](1)
     val dfs = new Array[Double](branchCount)
     t.branches.foreach { b =>
       val i = t.branchesToIndex(b)
-      partition.updateSumtable(nodesToCLVs(b.head), nodesToCLVs(b.tail), Array(0), sumtable)
-      partition.computeLikelihoodDerivatives(-1, -1, t.lengths(i), Array(0), sumtable, df, ddf)
+      partition.updateSumtable(nodesToCLVs(b.head), nodesToCLVs(b.tail), Array(0))
+      partition.computeLikelihoodDerivatives(-1, -1, t.lengths(i), Array(0), df, ddf)
       dfs(i) = df(0)
     }
     (logL, dfs.toIndexedSeq)

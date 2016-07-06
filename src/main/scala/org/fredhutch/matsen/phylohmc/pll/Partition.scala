@@ -1,5 +1,7 @@
 package org.fredhutch.matsen.phylohmc.pll
 
+import com.sun.jna.Native
+
 class Partition(tips: Int, clvBuffers: Int, states: Int, sites: Int, rateMatrices: Int, probMatrices: Int, rateCats: Int, scaleBuffers: Int, sse: Boolean = false, avx: Boolean = false, avx2: Boolean = false, avx512: Boolean = false, tipPatternCompression: Boolean = false) {
 
   private[this] val attributes = {
@@ -13,8 +15,14 @@ class Partition(tips: Int, clvBuffers: Int, states: Int, sites: Int, rateMatrice
   }
 
   private[this] val self = pll_partition_create(tips, clvBuffers, states, sites, rateMatrices, probMatrices, rateCats, scaleBuffers, attributes)
+  self.read()
 
-  override def finalize(): Unit = pll_partition_destroy(self)
+  private[this] val sumtable = pll_aligned_alloc(new size_t(self.sites * self.rate_cats * self.states_padded * Native.getNativeSize(classOf[Double])), if (sse) PLL_ALIGNMENT_SSE else if (avx || avx2) PLL_ALIGNMENT_AVX else PLL_ALIGNMENT_CPU)
+
+  override def finalize(): Unit = {
+    pll_aligned_free(sumtable)
+    pll_partition_destroy(self)
+  }
 
   def setTipStates(tipIndex: Int, dataType: DataType, sequence: String) = pll_set_tip_states(self, tipIndex, dataType match {
     case Bin => pll_map_bin
@@ -48,8 +56,8 @@ class Partition(tips: Int, clvBuffers: Int, states: Int, sites: Int, rateMatrice
 
   def computeEdgeLogLikelihood(parentCLVIndex: Int, parentScalerIndex: Int, childCLVIndex: Int, childScalerIndex: Int, matrixIndex: Int, freqsIndex: Array[Int], persiteLnL: Array[Double]) = pll_compute_edge_loglikelihood(self, parentCLVIndex, parentScalerIndex, childCLVIndex, childScalerIndex, matrixIndex, freqsIndex, persiteLnL)
 
-  def updateSumtable(parentCLVIndex: Int, childCLVIndex: Int, paramsIndices: Array[Int], sumtable: Array[Double]) = pll_update_sumtable(self, parentCLVIndex, childCLVIndex, paramsIndices, sumtable)
+  def updateSumtable(parentCLVIndex: Int, childCLVIndex: Int, paramsIndices: Array[Int]) = pll_update_sumtable(self, parentCLVIndex, childCLVIndex, paramsIndices, sumtable)
 
-  def computeLikelihoodDerivatives(parentScalerIndex: Int, childScalerIndex: Int, branchLength: Double, paramsIndices: Array[Int], sumtable: Array[Double], df: Array[Double], ddf: Array[Double]) = pll_compute_likelihood_derivatives(self, parentScalerIndex, childScalerIndex, branchLength, paramsIndices, sumtable, df, ddf)
+  def computeLikelihoodDerivatives(parentScalerIndex: Int, childScalerIndex: Int, branchLength: Double, paramsIndices: Array[Int], df: Array[Double], ddf: Array[Double]) = pll_compute_likelihood_derivatives(self, parentScalerIndex, childScalerIndex, branchLength, paramsIndices, sumtable, df, ddf)
 
 }
