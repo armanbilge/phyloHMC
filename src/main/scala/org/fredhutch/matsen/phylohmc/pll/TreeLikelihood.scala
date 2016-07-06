@@ -30,10 +30,11 @@ class TreeLikelihood[N](patterns: Map[Map[Taxon, Char], Int], gtr: GTR, mu: Doub
 
   private[this] val operations = new Operations(internalNodeCount)
 
-  val branchIndices = (0 until branchCount).toArray
   override def apply(t: Tree[Double, N]): (Double, IndexedSeq[Double]) = {
 
-    partition.updateProbMatrices(Array(0), branchIndices, t.lengths.toArray, branchCount)
+    val branchCount = t.branches.size
+
+    partition.updateProbMatrices(Array(0), (0 until branchCount).toArray, t.lengths.toArray, branchCount)
 
     def recurse(parent: N, child: N, i: Int = 0, m: Map[N, Int] = Map()): (Int, Int, Map[N, Int]) = if (t.isLeaf(child)) {
       val clv = taxaToInt(t.taxa(child))
