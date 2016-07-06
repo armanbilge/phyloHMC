@@ -63,7 +63,7 @@ package object pll {
 
   @native private[pll] def pll_aligned_free(ptr: Pointer): Unit
 
-  @native private[pll] def pll_update_partials(partition: pll_partition_t, operations: pll_operation, count: Int): Double
+  @native private[pll] def pll_update_partials(partition: pll_partition_t, operations: pll_operation_t, count: Int): Double
 
   @native private[pll] def pll_compute_root_loglikelihood(partition: pll_partition_t, clv_index: Int, scaler_index: Int, freqs_index: Array[Int], persite_lnl: Array[Double]): Double
 

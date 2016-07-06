@@ -5,7 +5,7 @@ import com.sun.jna.Structure;
 import java.util.Arrays;
 import java.util.List;
 
-public class pll_operation extends Structure implements Structure.ByReference {
+public class pll_operation_t extends Structure implements Structure.ByReference {
 
     public int parent_clv_index = 0;
     public int parent_scaler_index = -1;
