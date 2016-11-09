@@ -1,4 +1,4 @@
-package org.fredhutch.matsen.phylohmc
+package group.matsen.phylohmc
 
 import monocle.function.Index._
 import monocle.std.map._

@@ -1,4 +1,4 @@
-package org.fredhutch.matsen.phylohmc
+package group.matsen.phylohmc
 
 trait SubstitutionModel[R] extends (R => Matrix[R]) {
 

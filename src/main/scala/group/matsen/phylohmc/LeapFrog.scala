@@ -1,4 +1,4 @@
-package org.fredhutch.matsen.phylohmc
+package group.matsen.phylohmc
 
 import spire.std.seq._
 import spire.syntax.vectorSpace._

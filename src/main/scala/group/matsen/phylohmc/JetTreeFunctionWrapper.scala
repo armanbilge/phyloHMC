@@ -1,4 +1,4 @@
-package org.fredhutch.matsen.phylohmc
+package group.matsen.phylohmc
 
 import spire.algebra._
 import spire.math.{Jet, JetDim}

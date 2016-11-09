@@ -1,10 +1,10 @@
-package org.fredhutch.matsen.phylohmc
+package group.matsen.phylohmc
 
-import spire.algebra.{Field, Signed}
 import spire.algebra.Order._
+import spire.algebra.{Field, Signed}
 import spire.std.seq._
-import spire.syntax.vectorSpace._
 import spire.syntax.order._
+import spire.syntax.vectorSpace._
 
 trait ReflectiveLeapProg[R, N] extends PhyloHMC[R, N] {
 

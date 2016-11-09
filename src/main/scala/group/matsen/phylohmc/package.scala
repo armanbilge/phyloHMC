@@ -1,4 +1,4 @@
-package org.fredhutch.matsen
+package group.matsen
 
 import scala.collection.Bag
 

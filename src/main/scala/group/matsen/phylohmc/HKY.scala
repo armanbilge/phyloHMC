@@ -1,4 +1,4 @@
-package org.fredhutch.matsen.phylohmc
+package group.matsen.phylohmc
 
 import spire.algebra.{Field, Trig}
 import spire.syntax.field._

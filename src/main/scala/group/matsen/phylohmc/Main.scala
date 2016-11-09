@@ -1,8 +1,8 @@
-package org.fredhutch.matsen.phylohmc
+package group.matsen.phylohmc
 
 import scala.io.Source
-import reflect.runtime.currentMirror
-import tools.reflect.ToolBox
+import scala.reflect.runtime.currentMirror
+import scala.tools.reflect.ToolBox
 
 object Main extends App {
 

@@ -1,4 +1,4 @@
-package org.fredhutch.matsen.phylohmc
+package group.matsen.phylohmc
 
 import spire.algebra.{Field, NRoot, Order, Signed}
 import spire.std.seq._
