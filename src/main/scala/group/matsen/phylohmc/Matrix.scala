@@ -36,23 +36,19 @@ object Matrix {
     new Matrix(Vector.tabulate(n * n)(k => f(k / n, k % n)))
   }
 
-  implicit def matrixIsRing[N <: Nat : ToInt, R : Field]: Ring[Matrix[N, R]] = {
+  implicit def matrixIsRing[N <: Nat : ToInt, R : Field]: Ring[Matrix[N, R]] = new Ring[Matrix[N, R]] {
 
-    new Ring[Matrix[N, R]] {
+    override def negate(x: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => -x(i, j))
 
-      override def negate(x: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => -x(i, j))
+    override def zero: Matrix[N, R] = Matrix((i, j) => Field[R].zero)
 
-      override def zero: Matrix[N, R] = Matrix((i, j) => Field[R].zero)
+    override def plus(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x(i, j) + y(i, j))
 
-      override def plus(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x(i, j) + y(i, j))
+    override def minus(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x(i, j) - y(i, j))
 
-      override def minus(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x(i, j) - y(i, j))
+    override def one: Matrix[N, R] = Matrix((i, j) => if (i == j) Field[R].one else Field[R].zero)
 
-      override def one: Matrix[N, R] = Matrix((i, j) => if (i == j) Field[R].one else Field[R].zero)
-
-      override def times(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x.rows(i) dot y.columns(j))
-
-    }
+    override def times(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x.rows(i) dot y.columns(j))
 
   }
 
