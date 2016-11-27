@@ -2,7 +2,7 @@ package group.matsen.phylohmc
 
 import shapeless.Nat
 import spire.algebra.{Field, Trig}
-import spire.syntax.field._
+import spire.syntax.vectorSpace._
 
 class HKY[R : Field : Trig](val stationaryDistribution: IndexedSeq[R], val kappa: R) extends SubstitutionModel[R] {
 
@@ -35,13 +35,20 @@ class HKY[R : Field : Trig](val stationaryDistribution: IndexedSeq[R], val kappa
   val tab3T = tab2C
   val tab2T = tab3C
 
-  val beta = -1.0 / (2.0 * (freqR * freqY + kappa * (freqA * freqG + freqC * freqT)))
+  val beta = 1.0 / (2.0 * (freqR * freqY + kappa * (freqA * freqG + freqC * freqT)))
   val A_R = 1.0 + freqR * (kappa - 1)
   val A_Y = 1.0 + freqY * (kappa - 1)
 
+  override val Q: Matrix[Nat._4, R] =
+    beta *: Matrix[Nat._4, R](- freqC - kappa * freqG - freqT, freqA, kappa * freqA, freqA,
+      freqC, - freqA - freqG - kappa * freqT, freqC, kappa * freqC,
+      kappa * freqG, freqG, - kappa * freqA - freqC - freqT, freqG,
+      freqT, kappa * freqT, freqT, - freqA - kappa * freqC - freqG
+    )
+
   override def apply(t: R): Matrix[Nat._4, R] = {
 
-    val xx = beta * t
+    val xx = - beta * t
     val bbR = Trig[R].exp(xx * A_R)
     val bbY = Trig[R].exp(xx * A_Y)
 
