@@ -1,18 +1,21 @@
 package group.matsen.phylohmc
 
-import spire.algebra.Field
+import shapeless.Nat
+import shapeless.ops.nat.ToInt
+import spire.algebra.{Field, Ring}
 import spire.std.seq._
 import spire.syntax.innerProductSpace._
 
-class Matrix[R : Field](val size: Int, val values: Vector[R]) {
+class Matrix[N <: Nat : ToInt, R : Field](val values: Vector[R]) {
 
+  val size = Nat.toInt[N]
   require(values.length == size * size)
 
   @inline final def index(i: Int, j: Int): Int = size * i + j
 
   def apply(i: Int, j: Int): R = values(index(i, j))
 
-  def updated(i: Int, j: Int, r: R): Matrix[R] = new Matrix(size, values.updated(index(i, j), r))
+  def updated(i: Int, j: Int, r: R): Matrix[N, R] = new Matrix(values.updated(index(i, j), r))
 
   lazy val indices: Traversable[(Int, Int)] = (for (i <- 0 until size; j <- 0 until size) yield (i, j)).toVector
 
@@ -26,8 +29,31 @@ class Matrix[R : Field](val size: Int, val values: Vector[R]) {
 
 object Matrix {
 
-  def apply[R : Field](values: R*): Matrix[R] = new Matrix(Math.sqrt(values.size).toInt, values.toVector)
+  def apply[N <: Nat : ToInt, R : Field](values: R*): Matrix[N, R] = new Matrix(values.toVector)
 
-  def apply[R : Field](n: Int)(f: (Int, Int) => R): Matrix[R] = new Matrix(n, Vector.tabulate(n * n)(k => f(k / n, k % n)))
+  def apply[N <: Nat : ToInt, R : Field](f: (Int, Int) => R): Matrix[N, R] = {
+    val n = Nat.toInt[N]
+    new Matrix(Vector.tabulate(n * n)(k => f(k / n, k % n)))
+  }
+
+  implicit def matrixIsRing[N <: Nat : ToInt, R : Field]: Ring[Matrix[N, R]] = {
+
+    new Ring[Matrix[N, R]] {
+
+      override def negate(x: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => -x(i, j))
+
+      override def zero: Matrix[N, R] = Matrix((i, j) => Field[R].zero)
+
+      override def plus(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x(i, j) + y(i, j))
+
+      override def minus(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x(i, j) - y(i, j))
+
+      override def one: Matrix[N, R] = Matrix((i, j) => if (i == j) Field[R].one else Field[R].zero)
+
+      override def times(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x.rows(i) dot y.columns(j))
+
+    }
+
+  }
 
 }

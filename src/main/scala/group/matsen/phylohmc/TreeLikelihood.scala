@@ -1,5 +1,6 @@
 package group.matsen.phylohmc
 
+import shapeless.Nat
 import spire.algebra.{Field, Trig}
 import spire.std.seq._
 import spire.syntax.innerProductSpace._
@@ -12,11 +13,11 @@ class TreeLikelihood[R : Field : Trig, N](val patterns: Patterns, val model: Sub
 
     def recurse(parent: N, child: N): GenMap[Pattern, IndexedSeq[R]] = {
 
-      @inline def internalInternal(x: IndexedSeq[R], y: IndexedSeq[R], A: Matrix[R], B: Matrix[R]): IndexedSeq[R] = (A.columns, B.columns).zipped.map((a, b) => (a dot x) * (b dot y))
+      @inline def internalInternal(x: IndexedSeq[R], y: IndexedSeq[R], A: Matrix[Nat._4, R], B: Matrix[Nat._4, R]): IndexedSeq[R] = (A.columns, B.columns).zipped.map((a, b) => (a dot x) * (b dot y))
 
-      @inline def internalLeaf(x: IndexedSeq[R], j: Int, A: Matrix[R], B: Matrix[R]): IndexedSeq[R] = (A.columns, B.rows(j)).zipped.map((a, b) => (a dot x) * b)
+      @inline def internalLeaf(x: IndexedSeq[R], j: Int, A: Matrix[Nat._4, R], B: Matrix[Nat._4, R]): IndexedSeq[R] = (A.columns, B.rows(j)).zipped.map((a, b) => (a dot x) * b)
 
-      @inline def leafLeaf(i: Int, j: Int, A: Matrix[R], B: Matrix[R]): IndexedSeq[R] = (A.rows(i), B.rows(j)).zipped.map(Field[R].times)
+      @inline def leafLeaf(i: Int, j: Int, A: Matrix[Nat._4, R], B: Matrix[Nat._4, R]): IndexedSeq[R] = (A.rows(i), B.rows(j)).zipped.map(Field[R].times)
 
       val children = t.neighbors(child) - parent
       val (left, right) = (children.head, children.tail.head)

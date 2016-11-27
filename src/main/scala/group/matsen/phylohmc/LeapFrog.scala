@@ -1,9 +1,10 @@
 package group.matsen.phylohmc
 
+import shapeless.Nat
 import spire.std.seq._
 import spire.syntax.vectorSpace._
 
-trait LeapFrog[R, N] extends PhyloHMC[R, N] {
+trait LeapFrog[R, N, D <: Nat] extends PhyloHMC[R, N, D] {
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
     val halfEps = eps / 2

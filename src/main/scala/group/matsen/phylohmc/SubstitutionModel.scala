@@ -1,9 +1,11 @@
 package group.matsen.phylohmc
 
-trait SubstitutionModel[R] extends (R => Matrix[R]) {
+import shapeless.Nat
+
+trait SubstitutionModel[R] extends (R => Matrix[Nat._4, R]) {
 
   val stationaryDistribution: IndexedSeq[R]
 
-  def apply(t: R): Matrix[R]
+  def apply(t: R): Matrix[Nat._4, R]
 
 }

@@ -1,5 +1,6 @@
 package group.matsen.phylohmc
 
+import shapeless.Nat
 import spire.algebra.{Field, NRoot, Order, Signed}
 import spire.std.seq._
 import spire.syntax.innerProductSpace._
@@ -7,7 +8,7 @@ import spire.syntax.order._
 
 import scala.annotation.tailrec
 
-trait VuLeapProg[R, N] extends PhyloHMC[R, N] {
+trait VuLeapProg[R, N, D <: Nat] extends PhyloHMC[R, N, D] {
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
 
