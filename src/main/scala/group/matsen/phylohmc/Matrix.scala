@@ -2,7 +2,7 @@ package group.matsen.phylohmc
 
 import shapeless.Nat
 import shapeless.ops.nat.ToInt
-import spire.algebra.{Field, Ring}
+import spire.algebra.{Field, Ring, VectorSpace}
 import spire.std.seq._
 import spire.syntax.innerProductSpace._
 
@@ -53,6 +53,24 @@ object Matrix {
       override def times(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => x.rows(i) dot y.columns(j))
 
     }
+
+  }
+
+  implicit def matrixIsVectorSpace[N <: Nat : ToInt, R](implicit f: Field[R]): VectorSpace[Matrix[N, R], R] = new VectorSpace[Matrix[N, R], R] {
+
+    override def scalar: Field[R] = f
+
+    override def timesl(r: R, v: Matrix[N, R]): Matrix[N, R] = Matrix[N, R]((i: Int, j: Int) => r * v(i, j))
+
+    override def divr(v: Matrix[N, R], r: R): Matrix[N, R] = Matrix[N, R]((i: Int, j: Int) => v(i, j) / r)
+
+    override def negate(x: Matrix[N, R]): Matrix[N, R] = Ring[Matrix[N, R]].negate(x)
+
+    override def zero: Matrix[N, R] = Ring[Matrix[N, R]].zero
+
+    override def plus(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Ring[Matrix[N, R]].plus(x, y)
+
+    override def minus(x: Matrix[N, R], y: Matrix[N, R]): Matrix[N, R] = Ring[Matrix[N, R]].minus(x, y)
 
   }
 
