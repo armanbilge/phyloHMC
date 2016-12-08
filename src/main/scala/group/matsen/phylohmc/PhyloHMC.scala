@@ -1,15 +1,14 @@
 package group.matsen.phylohmc
 
 import org.apache.commons.math3.linear.{Array2DRowRealMatrix, CholeskyDecomposition, LUDecomposition}
-import shapeless.Nat
-import shapeless.ops.nat.ToInt
+import shapeless.Witness
 import spire.algebra._
 import spire.random.{Dist, Gaussian, Generator, Uniform}
 import spire.std.seq._
 import spire.syntax.innerProductSpace._
 import spire.syntax.order._
 
-abstract class PhyloHMC[R : Trig : Uniform : Gaussian, N, D <: Nat : ToInt](val posterior: Tree[R, N] => (R, IndexedSeq[R]), val M: Matrix[D, R], val alpha: R, val eps: R, val L: Int, val RToDouble: R => Double)(implicit val rng: Generator, implicit val f: Field[R], implicit val n: NRoot[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
+abstract class PhyloHMC[R : Trig : Uniform : Gaussian, N, D <: Int with Singleton : Witness.Aux](val posterior: Tree[R, N] => (R, IndexedSeq[R]), val M: Matrix[D, R], val alpha: R, val eps: R, val L: Int, val RToDouble: R => Double)(implicit val rng: Generator, implicit val f: Field[R], implicit val n: NRoot[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
 
   val (invM, choleskyL): (Matrix[D, R], Matrix[D, R]) = {
     val apacheM = new Array2DRowRealMatrix(M.size, M.size)

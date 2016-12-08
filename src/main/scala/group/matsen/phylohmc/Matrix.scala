@@ -1,14 +1,13 @@
 package group.matsen.phylohmc
 
-import shapeless.Nat
-import shapeless.ops.nat.ToInt
+import shapeless.Witness
 import spire.algebra.{Field, Ring, VectorSpace}
 import spire.std.seq._
 import spire.syntax.innerProductSpace._
 
-class Matrix[N <: Nat : ToInt, R : Field](val values: Vector[R]) {
+class Matrix[N <: Int with Singleton : Witness.Aux, R : Field](val values: Vector[R]) {
 
-  val size = Nat.toInt[N]
+  val size = implicitly[Witness.Aux[N]].value
   require(values.length == size * size)
 
   @inline final def index(i: Int, j: Int): Int = size * i + j
@@ -29,14 +28,14 @@ class Matrix[N <: Nat : ToInt, R : Field](val values: Vector[R]) {
 
 object Matrix {
 
-  def apply[N <: Nat : ToInt, R : Field](values: R*): Matrix[N, R] = new Matrix(values.toVector)
+  def apply[N <: Int with Singleton : Witness.Aux, R : Field](values: R*): Matrix[N, R] = new Matrix(values.toVector)
 
-  def apply[N <: Nat : ToInt, R : Field](f: (Int, Int) => R): Matrix[N, R] = {
-    val n = Nat.toInt[N]
+  def apply[N <: Int with Singleton : Witness.Aux, R : Field](f: (Int, Int) => R): Matrix[N, R] = {
+    val n = implicitly[Witness.Aux[N]].value
     new Matrix(Vector.tabulate(n * n)(k => f(k / n, k % n)))
   }
 
-  implicit def matrixIsRing[N <: Nat : ToInt, R : Field]: Ring[Matrix[N, R]] = new Ring[Matrix[N, R]] {
+  implicit def matrixIsRing[N <: Int with Singleton : Witness.Aux, R : Field]: Ring[Matrix[N, R]] = new Ring[Matrix[N, R]] {
 
     override def negate(x: Matrix[N, R]): Matrix[N, R] = Matrix((i, j) => -x(i, j))
 
@@ -52,7 +51,7 @@ object Matrix {
 
   }
 
-  implicit def matrixIsVectorSpace[N <: Nat : ToInt, R](implicit f: Field[R]): VectorSpace[Matrix[N, R], R] = new VectorSpace[Matrix[N, R], R] {
+  implicit def matrixIsVectorSpace[N <: Int with Singleton : Witness.Aux, R](implicit f: Field[R]): VectorSpace[Matrix[N, R], R] = new VectorSpace[Matrix[N, R], R] {
 
     override def scalar: Field[R] = f
 
