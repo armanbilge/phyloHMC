@@ -40,31 +40,41 @@ class TreeLikelihood[N](val patterns: Patterns, val gtr: GTR, val mu: Double, ss
     partition.updateProbMatrices(Array(0), (0 until branchCount).toArray, t.lengths.toArray, branchCount)
 
     val indices = mutable.Map[(N, N), Int]()
-    val todo = mutable.Set[(N, N)]()
+
     var i = leafCount
-    t.nodes.foreach { n =>
-      if (t.isLeaf(n)) {
-        indices((n, t.neighbors(n).head)) = taxaToInt(t.taxa(n))
-      } else {
-        t.neighbors(n).foreach { p =>
-          todo.add((n, p))
-        }
-      }
+    t.nodes.filter(t.isLeaf).foreach { n =>
+      indices((n, t.neighbors(n).head)) = taxaToInt(t.taxa(n))
     }
-    while (todo.nonEmpty) {
-      todo.find {
-        case (n, p) => t.children(n, p).forall(c => indices.contains((c, n)))
-      }.foreach { np =>
-        val (n, p) = np
+
+    def postorder(n: N, p: N): Unit = {
+      if (t.isInternal(n)) {
+        t.children(n, p).foreach(postorder(_, n))
         val c = t.children(n, p)
         val l = c.head
         val r = c.tail.head
         operations.update(i - leafCount)(parentCLVIndex = i, child1CLVIndex = indices((l, n)), child1MatrixIndex = t.branchesToIndex(Branch(l, n)), child2CLVIndex = indices((r, n)), child2MatrixIndex = t.branchesToIndex(Branch(r, n)))
         indices((n, p)) = i
-        todo.remove(np)
         i += 1
       }
     }
+
+    def preorder(n: N, p: N): Unit = {
+      if (t.isInternal(p)) {
+        val c = t.children(p, n)
+        val l = c.head
+        val r = c.tail.head
+        operations.update(i - leafCount)(parentCLVIndex = i, child1CLVIndex = indices((l, p)), child1MatrixIndex = t.branchesToIndex(Branch(l, p)), child2CLVIndex = indices((r, p)), child2MatrixIndex = t.branchesToIndex(Branch(r, p)))
+        indices((p, n)) = i
+        i += 1
+      }
+      t.children(n, p).foreach(preorder(_, n))
+    }
+
+    val rootEdge = t.branches.head
+    postorder(rootEdge.head, rootEdge.tail)
+    postorder(rootEdge.tail, rootEdge.head)
+    t.children(rootEdge.head, rootEdge.tail).foreach(preorder(_, rootEdge.head))
+    t.children(rootEdge.tail, rootEdge.head).foreach(preorder(_, rootEdge.tail))
 
     partition.updatePartials(operations)
     val b = t.branches.head
