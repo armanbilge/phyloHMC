@@ -1,12 +1,11 @@
 package group.matsen.phylohmc
 
-import scala.io.Source
-import scala.reflect.runtime.currentMirror
-import scala.tools.reflect.ToolBox
+import java.io.File
+
+import ammonite.ops.Path
 
 object Main extends App {
 
-  val toolBox = currentMirror.mkToolBox()
-  toolBox.compile(toolBox.parse("import " + getClass.getPackage.getName + "._\n" + Source.fromFile(args(0)).getLines().mkString("\n")))()
+  ammonite.Main(predef = "import " + getClass.getPackage.getName + "._", verboseOutput = false).runScript(Path(new File(args(0)).getAbsolutePath), Seq.empty, Seq.empty)
 
 }
