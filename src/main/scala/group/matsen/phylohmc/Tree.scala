@@ -4,6 +4,10 @@ import monocle.function.Index._
 import monocle.std.map._
 import spire.algebra.AdditiveMonoid
 
+import scala.collection.mutable
+import scala.util.parsing.combinator._
+import scala.util.parsing.input.CharSequenceReader
+
 case class Tree[R : AdditiveMonoid, N](nodes: Set[N], branchesToIndex: Map[Branch[N], Int], neighbors: Map[N, Set[N]], lengths: IndexedSeq[R], taxa: PartialFunction[N, Taxon]) extends PartialFunction[Branch[N], R] {
 
   val branches = branchesToIndex.keySet
@@ -93,6 +97,52 @@ object Tree {
     }
     val branchesp = branches + Branch(rho, root.head)
     Tree((0 until (2 * leaves.size - 2)).toSet, branchesp.map(_ -> r).toMap, leaves)
+  }
+
+  def apply(newick: String) = parseNewick(newick)
+
+  object parseNewick extends JavaTokenParsers {
+
+    def apply(newick: String): Tree[Double, Int] = {
+      var i = 0
+      var j = -1
+      val taxa = mutable.Map[Int, Taxon]()
+      val lengths = mutable.Map[Branch[Int], Double]()
+      def recurse(root: Node): (Int, Double) = root match {
+        case Leaf(taxon, length) =>
+          taxa += i -> taxon
+          i += 1
+          (i - 1, length)
+        case Internal(children, length) =>
+          children.map(recurse).foreach(kl => lengths += Branch(kl._1, j) -> kl._2)
+          j -= 1
+          (j + 1, length)
+      }
+      recurse(tree(new CharSequenceReader(newick)).get)
+      import spire.std.double._
+      Tree((j + 1 until i).toSet, lengths.toMap, taxa.toMap)
+    }
+
+    sealed trait Node
+    case class Internal(children: List[Node], length: Double) extends Node
+    case class Leaf(taxon: Taxon, length: Double) extends Node
+
+    def tree: Parser[Node] = node ~ ';' ^^ {
+      case node ~ ';' => node
+    }
+    def node: Parser[Node] = internal | leaf
+    def internal: Parser[Internal] = '(' ~ repsep(node, ',') ~ ")" ~ length ^^ {
+      case '(' ~ children ~ ")" ~ length => Internal(children, length)
+    }
+    def leaf: Parser[Leaf] = label ~ length ^^ {
+      case label ~ length => Leaf(label, length)
+    }
+    def label: Parser[Taxon] = "[A-Za-z0-9]+".r ^^ { r => Taxon(r.toString) }
+    def length: Parser[Double] = (':' ~ floatingPointNumber).? ^^ {
+      case Some(':' ~ length) => length.toDouble
+      case _ => Double.NaN
+    }
+
   }
 
 }
