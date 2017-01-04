@@ -118,7 +118,7 @@ object Tree {
           j -= 1
           (j + 1, length)
       }
-      recurse(tree(new CharSequenceReader(newick)).get)
+      recurse(tree(new CharSequenceReader(whiteSpace.replaceAllIn(newick, ""))).get)
       import spire.std.double._
       Tree((j + 1 until i).toSet, lengths.toMap, taxa.toMap)
     }
