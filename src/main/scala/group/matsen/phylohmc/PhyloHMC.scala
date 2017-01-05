@@ -33,8 +33,6 @@ abstract class PhyloHMC[R : Trig : Uniform : Gaussian, N, D <: Int with Singleto
     ((p dot invMp) / 2, invMp)
   }
 
-  def leapprog(eps: R)(z: Z[R, N]): Z[R, N]
-
   def flipMomentum(z: Z[R, N]): Z[R, N] = z.copy(p = -z.p)(_K = (z.k, -z.dK))
 
   def corruptMomentum(z: Z[R, N]): Z[R, N] = {
@@ -43,7 +41,7 @@ abstract class PhyloHMC[R : Trig : Uniform : Gaussian, N, D <: Int with Singleto
     z.copy(p = pp)(_K = K(pp))
   }
 
-  def simulateDynamics(z: Z[R, N]): Z[R, N] = (0 until L).foldLeft(z)((z, _) => leapprog(eps)(z))
+  def simulateDynamics(z: Z[R, N]): Z[R, N]
 
   override def apply(z: Z[R, N]): Z[R, N] = {
     val zp = flipMomentum(simulateDynamics(z))

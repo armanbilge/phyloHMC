@@ -7,7 +7,7 @@ import spire.syntax.order._
 
 import scala.annotation.tailrec
 
-trait VuLeapProg[R, N, D <: Int with Singleton] extends PhyloHMC[R, N, D] {
+trait VuLeapProg[R, N, D <: Int with Singleton] extends NumericalDynamics[R, N, D] {
 
   def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
 

@@ -6,7 +6,7 @@ import spire.std.seq._
 import spire.syntax.order._
 import spire.syntax.vectorSpace._
 
-trait ReflectiveLeapProg[R, N, D <: Int with Singleton] extends PhyloHMC[R, N, D] {
+trait ReflectiveLeapProg[R, N, D <: Int with Singleton] extends NumericalDynamics[R, N, D] {
 
   val barrier = Field[R].fromDouble(0.0)
 
