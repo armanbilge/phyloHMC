@@ -9,7 +9,7 @@ trait ReflectiveLeapFrog[R, N, D <: Int with Singleton] extends NumericalDynamic
 
   val barrier = Field[R].fromDouble(0.0)
 
-  def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
+  def leapprog(eps: R)(z: ZZ): ZZ = {
     val halfEps = eps / 2
     val pp = z.p - halfEps *: z.dU
     val (_, dK) = K(pp)

@@ -8,7 +8,9 @@ import spire.std.seq._
 import spire.syntax.innerProductSpace._
 import spire.syntax.order._
 
-abstract class PhyloHMC[R : Trig : Uniform : Gaussian, N, D <: Int with Singleton : Witness.Aux](val posterior: Tree[R, N] => (R, IndexedSeq[R]), val M: Matrix[D, R], val alpha: R, val eps: R, val L: Int, val RToDouble: R => Double)(implicit val rng: Generator, implicit val f: Field[R], implicit val n: NRoot[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N] => Z[R, N]) {
+abstract class PhyloHMC[R : Trig : Uniform : Gaussian, N, G, D <: Int with Singleton : Witness.Aux](val posterior: Tree[R, N] => (R, IndexedSeq[R]), val M: Matrix[D, R], val alpha: R, val eps: R, val L: Int, val RToDouble: R => Double)(implicit val rng: Generator, implicit val f: Field[R], implicit val n: NRoot[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N, G] => Z[R, N, G]) {
+
+  type ZZ = Z[R, N, G]
 
   val (invM, choleskyL): (Matrix[D, R], Matrix[D, R]) = {
     val apacheM = new Array2DRowRealMatrix(M.size, M.size)
@@ -23,27 +25,24 @@ abstract class PhyloHMC[R : Trig : Uniform : Gaussian, N, D <: Int with Singleto
   val sqrtalpha = NRoot[R].sqrt(alpha)
   val sqrt1malpha = NRoot[R].sqrt(1 - alpha)
 
-  def U(q: Tree[R, N]): (R, IndexedSeq[R]) = {
-    val (p, dP) = posterior(q)
-    (-p, -dP)
+  def U(q: Tree[R, N]): (R, G)
+
+  def K(p: IndexedSeq[R]): (R, G)
+
+  def flipMomentum(z: ZZ): ZZ = {
+    val pp = -z.p
+    z.copy(p = pp)(_K = K(pp))
   }
 
-  def K(p: IndexedSeq[R]): (R, IndexedSeq[R]) = {
-    val invMp = invM * p
-    ((p dot invMp) / 2, invMp)
-  }
-
-  def flipMomentum(z: Z[R, N]): Z[R, N] = z.copy(p = -z.p)(_K = (z.k, -z.dK))
-
-  def corruptMomentum(z: Z[R, N]): Z[R, N] = {
+  def corruptMomentum(z: ZZ): ZZ = {
     val r = IndexedSeq.fill(z.p.size)(rng.next(gaussian))
     val pp = sqrt1malpha *: z.p + sqrtalpha *: (choleskyL * r)
     z.copy(p = pp)(_K = K(pp))
   }
 
-  def simulateDynamics(z: Z[R, N]): Z[R, N]
+  def simulateDynamics(z: ZZ): ZZ
 
-  override def apply(z: Z[R, N]): Z[R, N] = {
+  override def apply(z: ZZ): ZZ = {
     val zp = flipMomentum(simulateDynamics(z))
     val a = Trig[R].exp(z.H - zp.H) min 1
     corruptMomentum(flipMomentum(if (rng.next(uniform) < a) zp else z))

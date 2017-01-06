@@ -9,12 +9,12 @@ import scala.annotation.tailrec
 
 trait VuLeapProg[R, N, D <: Int with Singleton] extends NumericalDynamics[R, N, D] {
 
-  def leapprog(eps: R)(z: Z[R, N]): Z[R, N] = {
+  def leapprog(eps: R)(z: Z[R, N, G]): ZZ = {
 
     @tailrec
-    def recurse(z: Z[R, N], eps: R): Z[R, N] = {
+    def recurse(z: ZZ, eps: R): ZZ = {
 
-      def solveForEps(z: Z[R, N])(i: Int): Option[R] = {
+      def solveForEps(z: ZZ)(i: Int): Option[R] = {
         val twoa = - invM.rows(i) dot z.dU
         val b = invM.rows(i) dot z.p
         val c = z.q.lengths(i)
@@ -29,7 +29,7 @@ trait VuLeapProg[R, N, D <: Int with Singleton] extends NumericalDynamics[R, N, 
         }
       }
 
-      def leapfrog(eps: R, i: Option[Int] = None)(z: Z[R, N]): Z[R, N] = {
+      def leapfrog(eps: R, i: Option[Int] = None)(z: ZZ): ZZ = {
         val halfEps = eps / 2
         val pp = z.p - halfEps *: z.dU
         val (_, dK) = K(pp)
