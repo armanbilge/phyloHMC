@@ -11,7 +11,7 @@ object Main extends App {
     case Failure(ex, msg) =>
       ex match {
         case Some(t) => throw t
-        case None => System.err.println(msg)
+        case None => throw new RuntimeException(msg)
       }
     case Exception(t, msg) => throw t
     case _ =>
