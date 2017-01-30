@@ -8,7 +8,7 @@ import spire.std.seq._
 import spire.syntax.innerProductSpace._
 import spire.syntax.order._
 
-abstract class PhyloHMC[R : Trig : Uniform : Gaussian, N, G, D <: Int with Singleton : Witness.Aux](val posterior: Tree[R, N] => (R, IndexedSeq[R]), val M: Matrix[D, R], val alpha: R, val eps: R, val L: Int, val RToDouble: R => Double)(implicit val rng: Generator, implicit val f: Field[R], implicit val n: NRoot[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N, G] => Z[R, N, G]) {
+abstract class PhyloHMC[R : Uniform : Gaussian, N, G, D <: Int with Singleton : Witness.Aux](val posterior: Tree[R, N] => (R, G), val M: Matrix[D, R], val alpha: R, val eps: R, val L: Int, val RToDouble: R => Double)(implicit val rng: Generator, implicit val f: Field[R], implicit val trig: Trig[R], implicit val n: NRoot[R], implicit val s: Signed[R], implicit val o: Order[R]) extends (Z[R, N, G] => Z[R, N, G]) {
 
   type ZZ = Z[R, N, G]
 
