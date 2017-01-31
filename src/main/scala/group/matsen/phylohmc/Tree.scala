@@ -137,7 +137,7 @@ object Tree {
     def leaf: Parser[Leaf] = label ~ length ^^ {
       case label ~ length => Leaf(label, length)
     }
-    def label: Parser[Taxon] = "[A-Za-z0-9]+".r ^^ { r => Taxon(r.toString) }
+    def label: Parser[Taxon] = "\\w+".r ^^ { r => Taxon(r.toString) }
     def length: Parser[Double] = (':' ~ floatingPointNumber).? ^^ {
       case Some(':' ~ length) => length.toDouble
       case _ => Double.NaN
