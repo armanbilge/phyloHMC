@@ -21,7 +21,7 @@ class TreeLikelihood[N](val patterns: Patterns, val gtr: GTR, val mu: Double, ss
     partition.setPatternWeights(patterns.multiplicities.map(_._2).toArray)
     taxa.foreach { taxon =>
       val i = taxaToInt(taxon)
-      partition.setTipStates(i, Nt, patterns.multiplicities.map(_._1).map(_(taxon)).map(Vector('A', 'C', 'G', 'T')).mkString)
+      partition.setTipStates(i, Nt, patterns.multiplicities.map(_._1).map(_(taxon)).map(Vector('A', 'C', 'G', 'T', 'N')).mkString)
     }
     partition.setCategoryRates(Array(mu))
     partition.setCategoryWeights(Array(1.0))

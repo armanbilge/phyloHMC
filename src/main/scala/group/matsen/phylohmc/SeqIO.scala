@@ -13,6 +13,7 @@ object SeqIO {
         case 'C' => 1
         case 'G' => 2
         case 'T' => 3
+        case _ => 4
       }.zip(taxa).map(Function.tupled((i, t) => (t, i))).toMap
     ).foldLeft(Patterns(Patterns.configuration.compact[Pattern]))(_ + _)
 
