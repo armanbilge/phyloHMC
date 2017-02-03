@@ -9,15 +9,27 @@ import scala.collection.GenMap
 
 class TreeLikelihood[R : Field : Trig, N](val patterns: Patterns, val model: SubstitutionModel[R], val mu: R) extends (Tree[R, N] => R) {
 
+  val ambig = IndexedSeq.fill(4)(Field[R].one)
+
   override def apply(t: Tree[R, N]): R = {
 
     def recurse(parent: N, child: N): GenMap[Pattern, IndexedSeq[R]] = {
 
       @inline def internalInternal(x: IndexedSeq[R], y: IndexedSeq[R], A: Matrix[_4, R], B: Matrix[_4, R]): IndexedSeq[R] = (A.columns, B.columns).zipped.map((a, b) => (a dot x) * (b dot y))
 
-      @inline def internalLeaf(x: IndexedSeq[R], j: Int, A: Matrix[_4, R], B: Matrix[_4, R]): IndexedSeq[R] = (A.columns, B.rows(j)).zipped.map((a, b) => (a dot x) * b)
+      @inline def internalLeaf(x: IndexedSeq[R], j: Int, A: Matrix[_4, R], B: Matrix[_4, R]): IndexedSeq[R] = if (j == 4)
+        internalInternal(x, ambig, A, B)
+      else
+        (A.columns, B.rows(j)).zipped.map((a, b) => (a dot x) * b)
 
-      @inline def leafLeaf(i: Int, j: Int, A: Matrix[_4, R], B: Matrix[_4, R]): IndexedSeq[R] = (A.rows(i), B.rows(j)).zipped.map(Field[R].times)
+      @inline def leafLeaf(i: Int, j: Int, A: Matrix[_4, R], B: Matrix[_4, R]): IndexedSeq[R] = {
+        (i, j) match {
+          case (4, 4) => internalInternal(ambig, ambig, A, B)
+          case (4, _) => internalLeaf(ambig, j, A, B)
+          case (_, 4) => internalLeaf(ambig, i, B, A)
+          case _ => (A.rows(i), B.rows(j)).zipped.map(Field[R].times)
+        }
+      }
 
       val children = t.neighbors(child) - parent
       val (left, right) = (children.head, children.tail.head)
@@ -46,7 +58,7 @@ class TreeLikelihood[R : Field : Trig, N](val patterns: Patterns, val model: Sub
     Field[R].sum(
       recurse(rho, root).par.map(Function.tupled({ (pattern, partial) =>
         val i = pattern(t.taxa(rho))
-        patterns.multiplicity(pattern) * Trig[R].log(model.stationaryDistribution(i) * Field[R].sum((rrMatrix.columns(i), partial).zipped.map(Field[R].times)))
+        patterns.multiplicity(pattern) * Trig[R].log(if (i == 4) model.stationaryDistribution dot (rrMatrix * partial) else model.stationaryDistribution(i) * Field[R].sum((rrMatrix.columns(i), partial).zipped.map(Field[R].times)))
       })).toIterator
     )
 
