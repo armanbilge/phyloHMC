@@ -1,7 +1,7 @@
 name := "phyloHMC"
 enablePlugins(GitVersioning)
 scalaVersion := "2.12.1"
-scalacOptions += "-optimize"
+scalacOptions += "-opt:l:classpath"
 libraryDependencies += "com.chuusai" %% "shapeless" % "2.3.2"
 libraryDependencies += "com.github.julien-truffaut" %% "monocle-core" % "1.4.0-M2"
 libraryDependencies += "com.lihaoyi" % "ammonite" % "0.8.1" cross CrossVersion.full
