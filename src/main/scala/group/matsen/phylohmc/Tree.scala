@@ -127,7 +127,7 @@ object Tree {
     case class Internal(children: List[Node], length: Double) extends Node
     case class Leaf(taxon: Taxon, length: Double) extends Node
 
-    def tree: Parser[Node] = "&[U]".? ~ node ~ ';' ^^ {
+    def tree: Parser[Node] = "[&U]".? ~ node ~ ';' ^^ {
       case _ ~ node ~ ';' => node
     }
     def node: Parser[Node] = internal | leaf
