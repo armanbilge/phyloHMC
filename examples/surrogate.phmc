@@ -1,0 +1,78 @@
+// Usage: java -jar phyloHMC.jar surrogate.phmc dataset.fst n-samples eps L
+
+import java.io._
+import spire.algebra.Ring
+import spire.implicits._
+import spire.random.rng.MersenneTwister64
+import shapeless.Witness
+
+implicit val rng = MersenneTwister64.fromTime()
+
+// Process command line arguments
+val fasta = args(0)
+val samples = args(1).toInt
+val eps = args(2).toDouble
+val L = args(3).toInt
+val prefix = fasta.split('.').dropRight(1).mkString(".")
+
+// Read the data
+val patterns = SeqIO.parseFasta(fasta)
+
+val taxa = patterns.head.keySet
+val t = taxa.size
+
+// Calculate number of dimensions
+val n = 2 * t - 3
+implicit val wDim = Witness(n)
+type Dim = wDim.T
+
+val like = try {
+  // Attempt to load libpll
+  val gtr = pll.GTR(IndexedSeq(0.25, 0.25, 0.25, 0.25), IndexedSeq(1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+  new pll.TreeLikelihood[Int](patterns, gtr, 1.0)
+} catch {
+  case _: UnsatisfiedLinkError =>
+    // Couldn't find pll; falling back on pure-Scala implementation
+    import spire.math.{Jet, JetDim}
+    implicit val jd = JetDim(n)
+    val jc = new JC[Jet[Double]]
+    new JetTreeFunctionWrapper(new TreeLikelihood[Jet[Double], Int](patterns, jc, 1.0))
+}
+val prior = ExponentialBranchPrior[Double, Int](10.0)
+def post(t: Tree[Double, Int]): (Double, IndexedSeq[Double]) = {
+  val (l, dL) = like(t)
+  val (p, dP) = prior(t)
+  (l + p, dL + dP)
+}
+
+val q = Tree(taxa, rng.nextDouble()) // Initialize tree
+val p = IndexedSeq.fill(n)(rng.nextGaussian(0.0, 1.0)) // Initialize momentum
+val I = Ring[Matrix[Dim, Double]].one // The identity matrix
+
+// Create loggers
+val pw = new PrintWriter(prefix + ".log")
+val tpw = new PrintWriter(prefix + ".trees")
+println("state\tposterior\ttreelength\tacceptance rate")
+pw.println("state\tposterior\ttreelength\t" + (0 until n).mkString("\t"))
+
+// Create HMC using leap-prog integrator with the surrogate approximation
+val hmc = new PhyloHMC[Double, Int, IndexedSeq[Double], Dim](post, I, 1.0, eps, L, identity[Double]) with group.matsen.phylohmc.SurrogateLeapProg[Double, Int, Dim] { val delta = 2 * eps }
+
+// Initialize Z and run algorithm
+val z = Z(q, p, hmc.U, hmc.K)
+var zold = z
+var accept = 0
+MCMC(z)(hmc).take(samples + 1).zipWithIndex.foreach { zi =>
+  val (z, i) = zi
+  if (z.q ne zold.q) accept += 1
+  println(s"$i\t${-z.u}\t${z.q.lengths.sum}\t${accept / i.toDouble}")
+  pw.println(s"$i\t${-z.u}\t${z.q.lengths.sum}\t" + z.q.lengths.mkString("\t"))
+  pw.flush
+  tpw.println(z.q)
+  tpw.flush
+  zold = z
+}
+
+// Close loggers
+pw.close
+tpw.close
