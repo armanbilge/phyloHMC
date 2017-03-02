@@ -1,6 +1,6 @@
 # phyloHMC
 
-An implementation of Probabilistic Path Hamiltonian Monte Carlo (PPHMC) for Bayesian phylogenetic inference.
+An implementation of [Probabilistic Path Hamiltonian Monte Carlo](https://arxiv.org/abs/1702.07814) for Bayesian phylogenetic inference.
 
 # Prerequisites
 
